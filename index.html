@@ -12,6 +12,7 @@
             --bg-dark: #121212;
             --bg-surface: #1E1E1E;
             --primary-gold: #c09a3e;
+            --primary-gold-hover: #d4af37;
             --primary-gold-glow: rgba(192, 154, 62, 0.4);
             --text-light: #E0E0E0;
             --border-color: #444444;
@@ -35,10 +36,13 @@
             transform: translateY(20px);
             animation: fadeIn 1s ease-out forwards;
         }
+        .btn-primary { background-color: var(--primary-gold); color: var(--bg-dark); transition: background-color 0.3s; }
+        .btn-primary:hover { background-color: var(--primary-gold-hover); }
         .scan-button {
             box-shadow: 0 0 15px var(--primary-gold-glow), 0 0 25px var(--primary-gold-glow);
             animation: pulse 2.5s infinite;
         }
+        .modal-backdrop { background-color: rgba(0,0,0,0.8); }
         .modal-content {
             background-color: var(--bg-surface);
             border: 1px solid var(--border-color);
@@ -49,37 +53,51 @@
              border: 3px solid var(--primary-gold);
              box-shadow: 0 0 10px var(--primary-gold-glow);
         }
+        .form-input { background-color: #2a2a2a; border: 1px solid var(--border-color); color: var(--text-light); border-radius: 0.5rem; transition: border-color 0.3s, box-shadow 0.3s; }
+        .form-input:focus { outline: none; border-color: var(--primary-gold); box-shadow: 0 0 0 2px var(--primary-gold-glow); }
 
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse {
             0% { box-shadow: 0 0 15px var(--primary-gold-glow), 0 0 25px var(--primary-gold-glow); }
             50% { box-shadow: 0 0 25px var(--primary-gold-glow), 0 0 40px var(--primary-gold-glow); }
             100% { box-shadow: 0 0 15px var(--primary-gold-glow), 0 0 25px var(--primary-gold-glow); }
         }
-        @keyframes scaleIn {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="antialiased">
 
     <canvas id="particle-canvas"></canvas>
 
-    <div class="min-h-screen flex flex-col items-center justify-center text-center p-4">
-        <main class="main-content" style="animation-delay: 0.2s;">
-            <img src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Festival Logo" class="w-32 h-32 md:w-40 md:h-40 mx-auto rounded-full shadow-lg mb-6" style="box-shadow: 0 0 20px var(--primary-gold-glow);">
-            <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-wider">SAYORA<span style="color: var(--primary-gold);"> FESTIVAL</span></h1>
-            <p class="text-lg md:text-xl text-gray-300 mt-2 mb-10">מערכת בקרת כניסות</p>
-            <button id="scan-qr-btn" class="scan-button bg-primary-gold text-bg-dark font-bold text-xl py-4 px-10 rounded-full transition-transform duration-300 hover:scale-105">
-                סרוק ברקוד
-            </button>
-        </main>
+    <!-- START: Login Modal -->
+    <div id="login-modal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
+        <div class="modal-content p-8 rounded-xl w-full max-w-sm text-center">
+            <img src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Festival Logo" class="w-24 h-24 mx-auto rounded-full shadow-lg mb-4" style="box-shadow: 0 0 15px var(--primary-gold-glow);">
+            <h2 class="text-2xl font-bold mb-2">כניסת סדרנים</h2>
+            <p class="text-gray-400 mb-6">יש להזין תעודת זהות לצורך אימות.</p>
+            <form id="login-form">
+                <input type="password" id="steward-id-input" class="form-input w-full p-3 text-center text-lg tracking-widest" placeholder="תעודת זהות" required>
+                <p id="login-error" class="text-red-500 text-sm mt-2 h-5"></p>
+                <button type="submit" class="w-full mt-4 btn-primary font-bold text-lg py-3 px-8 rounded-lg transition-transform duration-300 hover:scale-105">
+                    התחבר
+                </button>
+            </form>
+        </div>
+    </div>
+    <!-- END: Login Modal -->
+    
+    <!-- This container will be hidden until login is successful -->
+    <div id="main-container" class="hidden">
+        <div class="min-h-screen flex flex-col items-center justify-center text-center p-4">
+            <main class="main-content" style="animation-delay: 0.2s;">
+                <img src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Festival Logo" class="w-32 h-32 md:w-40 md:h-40 mx-auto rounded-full shadow-lg mb-6" style="box-shadow: 0 0 20px var(--primary-gold-glow);">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-wider">SAYORA<span style="color: var(--primary-gold);"> FESTIVAL</span></h1>
+                <p class="text-lg md:text-xl text-gray-300 mt-2 mb-10">מערכת בקרת כניסות</p>
+                <button id="scan-qr-btn" class="scan-button bg-primary-gold text-bg-dark font-bold text-xl py-4 px-10 rounded-full transition-transform duration-300 hover:scale-105">
+                    סרוק ברקוד
+                </button>
+            </main>
+        </div>
     </div>
 
     <div id="scanner-modal" class="fixed inset-0 bg-black bg-opacity-80 items-center justify-center z-40 hidden p-4">
@@ -105,13 +123,21 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyAUdX5OhKdNVvXTwVMF6zul6zGhldqx_s0", authDomain: "sayora-786c4.firebaseapp.com", projectId: "sayora-786c4", storageBucket: "sayora-786c4.firebasestorage.app", messagingSenderId: "353491525675", appId: "1:353491525675:web:0c59e5183e112e9bf84a6e" };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Login elements
+        const loginModal = document.getElementById('login-modal');
+        const loginForm = document.getElementById('login-form');
+        const stewardIdInput = document.getElementById('steward-id-input');
+        const loginError = document.getElementById('login-error');
+        const mainContainer = document.getElementById('main-container');
+
+        // Main app elements
         const scanBtn = document.getElementById('scan-qr-btn');
         const scannerModal = document.getElementById('scanner-modal');
         const cancelScannerBtn = document.getElementById('cancel-scanner-modal');
@@ -130,7 +156,43 @@
         const hideFeedback = () => {
             feedbackOverlay.style.display = 'none';
         };
+        
+        // --- Login Logic ---
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const stewardId = stewardIdInput.value.trim();
+            loginError.textContent = '';
+            if (!stewardId) {
+                loginError.textContent = 'יש להזין תעודת זהות.';
+                return;
+            }
 
+            showFeedback('מאמת הרשאות...');
+
+            try {
+                const profilesRef = collection(db, "profiles");
+                const q = query(profilesRef, where("isSteward", "==", true), where("idNumber", "==", stewardId));
+                
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // Successful login
+                    loginModal.style.display = 'none';
+                    mainContainer.classList.remove('hidden');
+                } else {
+                    // Failed login
+                    loginError.textContent = 'ת.ז. שגויה או שאין הרשאות סדרן.';
+                }
+            } catch (error) {
+                console.error("Login error:", error);
+                loginError.textContent = 'שגיאה באימות מול השרת.';
+            } finally {
+                hideFeedback();
+            }
+        });
+
+
+        // --- Scanner Logic ---
         scanBtn.addEventListener('click', () => {
             scannerModal.style.display = 'flex';
             html5QrcodeScanner = new Html5Qrcode("reader");
@@ -166,7 +228,6 @@
                 if (docSnap.exists()) {
                     displayProfileDetails(docSnap.data(), type);
                     detailsModal.style.display = 'flex';
-                    // FIX: Hide feedback overlay on success
                     hideFeedback();
                 } else {
                     showFeedback('הברקוד אינו תקין', false);
@@ -241,9 +302,12 @@
             }
         }
         function animateParticles() { requestAnimationFrame(animateParticles); ctx.clearRect(0,0,innerWidth, innerHeight); for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update(); }
+        
+        // Initialize particles on load
         initParticles();
         animateParticles();
         window.addEventListener('resize', () => { canvas.width = innerWidth; canvas.height = innerHeight; initParticles(); });
     </script>
 </body>
 </html>
+

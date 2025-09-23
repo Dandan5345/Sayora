@@ -28,9 +28,12 @@
         .btn-primary:disabled { background-color: #555; color: #999; cursor: not-allowed; transform: none; }
         .btn-secondary { background-color: #333; color: var(--text-light); border: 1px solid var(--border-color); }
         .btn-secondary:hover { background-color: #444; }
-        .toggle-bg:after { content: ''; position: absolute; top: 2px; left: 2px; background: white; border-radius: 50%; transition: 0.3s; width: 20px; height: 20px; }
-        input:checked + .toggle-bg:after { transform: translateX(100%); }
-        input:checked + .toggle-bg { background: var(--primary-gold); }
+        .toggle-bg { transition: background-color 0.3s; }
+        .toggle-checkbox:checked + .toggle-bg:after { transform: translateX(100%); }
+        .toggle-checkbox:checked + .toggle-bg { background: var(--primary-gold); }
+        .toggle-checkbox { width: 1.5rem; height: 1.5rem; }
+        .toggle-label { width: 3rem; height: 1.5rem; }
+        .toggle-label:after { content: ''; position: absolute; top: 2px; left: 2px; background: white; border-radius: 50%; transition: 0.3s; width: 20px; height: 20px; }
         .item-card { cursor: pointer; transition: background-color 0.2s, transform 0.2s; }
         .item-card:hover { background-color: #2a2a2a; transform: translateY(-3px); }
         .progress-bar-bg { background-color: #333; }
@@ -85,7 +88,15 @@
     <!-- Modals -->
     <div id="site-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-md"><h3 id="site-modal-title" class="text-2xl font-bold mb-6">הוסף אתר חדש</h3><form id="site-form"><input type="hidden" id="site-id"><div class="mb-4"><label for="site-name" class="block mb-2">שם האתר <span class="text-red-500">*</span></label><input type="text" id="site-name" class="w-full p-2 form-input" required></div><div class="mb-6"><label for="site-details" class="block mb-2">פירוט</label><textarea id="site-details" class="w-full p-2 form-textarea" rows="3"></textarea></div><div class="flex justify-end gap-4"><button type="button" class="btn btn-secondary cancel-modal-btn">ביטול</button><button type="submit" class="btn btn-primary">שמור</button></div></form></div></div>
     <div id="manager-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-lg"><h3 id="manager-modal-title" class="text-2xl font-bold mb-6">הוסף מנהל חדש</h3><form id="manager-form" novalidate><input type="hidden" id="manager-id"><input type="hidden" id="manager-image-url"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="manager-name" class="block mb-2">שם מלא <span class="text-red-500">*</span></label><input type="text" id="manager-name" class="w-full p-2 form-input" required></div><div><label for="manager-phone" class="block mb-2">מספר טלפון <span class="text-red-500">*</span></label><input type="tel" id="manager-phone" class="w-full p-2 form-input" required></div><div><label for="manager-id-number" class="block mb-2">תעודת זהות <span class="text-red-500">*</span></label><input type="text" id="manager-id-number" class="w-full p-2 form-input" required></div><div><div class="flex justify-between items-center mb-2"><label for="manager-sites">אתרים מורשים <span class="text-red-500">*</span></label><button type="button" class="text-xs btn-secondary py-1 px-2" id="select-all-manager-sites-btn">בחר הכל</button></div><select id="manager-sites" class="w-full p-2 form-select" multiple required></select></div><div class="md:col-span-2"><label for="manager-responsibility" class="block mb-2">אחריות <span class="text-red-500">*</span></label><textarea id="manager-responsibility" class="w-full p-2 form-textarea" rows="3" required></textarea></div><div class="md:col-span-2"><label class="block mb-2">תמונת פרופיל <span class="text-red-500">*</span></label><label for="manager-image-input" class="image-uploader p-4 rounded-lg flex items-center gap-4 w-full"><img id="manager-image-preview" src="https://placehold.co/64x64/2a2a2a/444444?text=בחר" alt="Preview" class="image-preview"><div class="flex-1"><p id="manager-image-filename" class="text-sm text-gray-400">יש לבחור תמונה</p><div id="manager-image-status" class="text-sm mt-1"></div></div></label><input type="file" id="manager-image-input" class="hidden" accept="image/*"><div id="manager-upload-progress" class="hidden mt-2"><div class="progress-bar-bg w-full rounded-full h-2.5"><div id="manager-progress-bar" class="progress-bar-fg h-2.5 rounded-full" style="width: 0%"></div></div><div id="manager-upload-status" class="text-sm text-center mt-1"></div></div></div></div><div class="flex justify-end gap-4 mt-6"><button type="button" class="btn btn-secondary cancel-modal-btn">ביטול</button><button type="submit" id="save-manager-btn" class="btn btn-primary">שמור מנהל</button></div></form></div></div>
-    <div id="profile-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-lg"><h3 id="profile-modal-title" class="text-2xl font-bold mb-6">הוסף פרופיל חדש</h3><form id="profile-form" novalidate><input type="hidden" id="profile-id"><input type="hidden" id="profile-image-url"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="profile-name" class="block mb-2">שם מלא <span class="text-red-500">*</span></label><input type="text" id="profile-name" class="w-full p-2 form-input" required></div><div><label for="profile-phone" class="block mb-2">מספר טלפון <span class="text-red-500">*</span></label><input type="tel" id="profile-phone" class="w-full p-2 form-input" required></div><div><label for="profile-id-number" class="block mb-2">תעודת זהות <span class="text-red-500">*</span></label><input type="text" id="profile-id-number" class="w-full p-2 form-input" required></div><div><label for="profile-role" class="block mb-2">תפקיד <span class="text-red-500">*</span></label><input type="text" id="profile-role" class="w-full p-2 form-input" required></div><div><label for="profile-manager" class="block mb-2">מנהל אחראי <span class="text-red-500">*</span></label><select id="profile-manager" class="w-full p-2 form-select" required></select></div><div><div class="flex justify-between items-center mb-2"><label for="profile-sites" class="block">גישה לאתרים <span class="text-red-500">*</span></label><button type="button" class="text-xs btn-secondary py-1 px-2" id="select-all-profile-sites-btn">בחר הכל</button></div><select id="profile-sites" class="w-full p-2 form-select" multiple required></select></div><div class="md:col-span-2"><label class="block mb-2">תמונת פרופיל <span class="text-red-500">*</span></label><label for="profile-image-input" class="image-uploader p-4 rounded-lg flex items-center gap-4 w-full"><img id="profile-image-preview" src="https://placehold.co/64x64/2a2a2a/444444?text=בחר" alt="Preview" class="image-preview"><div class="flex-1"><p id="profile-image-filename" class="text-sm text-gray-400">יש לבחור תמונה</p><div id="profile-image-status" class="text-sm mt-1"></div></div></label><input type="file" id="profile-image-input" class="hidden" accept="image/*"><div id="profile-upload-progress" class="hidden mt-2"><div class="progress-bar-bg w-full rounded-full h-2.5"><div id="profile-progress-bar" class="progress-bar-fg h-2.5 rounded-full" style="width: 0%"></div></div><div id="profile-upload-status" class="text-sm text-center mt-1"></div></div></div><div class="flex items-center md:col-span-2"><label class="block mr-4">פרופיל פעיל</label><div class="relative inline-block w-12 mr-2 align-middle select-none"><input type="checkbox" name="toggle" id="profile-active" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/><label for="profile-active" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer toggle-bg"></label></div></div></div><div class="flex justify-end gap-4 mt-4"><button type="button" class="btn btn-secondary cancel-modal-btn">ביטול</button><button type="submit" id="save-profile-btn" class="btn btn-primary">שמור פרופיל</button></div></form></div></div>
+    <div id="profile-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-lg"><h3 id="profile-modal-title" class="text-2xl font-bold mb-6">הוסף פרופיל חדש</h3><form id="profile-form" novalidate><input type="hidden" id="profile-id"><input type="hidden" id="profile-image-url"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="profile-name" class="block mb-2">שם מלא <span class="text-red-500">*</span></label><input type="text" id="profile-name" class="w-full p-2 form-input" required></div><div><label for="profile-phone" class="block mb-2">מספר טלפון <span class="text-red-500">*</span></label><input type="tel" id="profile-phone" class="w-full p-2 form-input" required></div><div><label for="profile-id-number" class="block mb-2">תעודת זהות <span class="text-red-500">*</span></label><input type="text" id="profile-id-number" class="w-full p-2 form-input" required></div><div><label for="profile-role" class="block mb-2">תפקיד <span class="text-red-500">*</span></label><input type="text" id="profile-role" class="w-full p-2 form-input" required></div><div><label for="profile-manager" class="block mb-2">מנהל אחראי <span class="text-red-500">*</span></label><select id="profile-manager" class="w-full p-2 form-select" required></select></div><div><div class="flex justify-between items-center mb-2"><label for="profile-sites" class="block">גישה לאתרים <span class="text-red-500">*</span></label><button type="button" class="text-xs btn-secondary py-1 px-2" id="select-all-profile-sites-btn">בחר הכל</button></div><select id="profile-sites" class="w-full p-2 form-select" multiple required></select></div><div class="md:col-span-2"><label class="block mb-2">תמונת פרופיל <span class="text-red-500">*</span></label><label for="profile-image-input" class="image-uploader p-4 rounded-lg flex items-center gap-4 w-full"><img id="profile-image-preview" src="https://placehold.co/64x64/2a2a2a/444444?text=בחר" alt="Preview" class="image-preview"><div class="flex-1"><p id="profile-image-filename" class="text-sm text-gray-400">יש לבחור תמונה</p><div id="profile-image-status" class="text-sm mt-1"></div></div></label><input type="file" id="profile-image-input" class="hidden" accept="image/*"><div id="profile-upload-progress" class="hidden mt-2"><div class="progress-bar-bg w-full rounded-full h-2.5"><div id="profile-progress-bar" class="progress-bar-fg h-2.5 rounded-full" style="width: 0%"></div></div><div id="profile-upload-status" class="text-sm text-center mt-1"></div></div></div>
+                <!-- Toggles Section -->
+                <div class="md:col-span-2 grid grid-cols-2 gap-4 items-center">
+                    <div class="flex items-center"><label class="block mr-4">פרופיל פעיל</label><div class="relative inline-block w-12 mr-2 align-middle select-none"><input type="checkbox" name="toggle" id="profile-active" class="toggle-checkbox absolute block rounded-full bg-white border-4 appearance-none cursor-pointer" checked/><label for="profile-active" class="toggle-label block overflow-hidden rounded-full bg-gray-600 cursor-pointer"></label></div></div>
+                    <!-- START: Added Steward Toggle -->
+                    <div class="flex items-center"><label class="block mr-4">סדרן</label><div class="relative inline-block w-12 mr-2 align-middle select-none"><input type="checkbox" name="toggle-steward" id="profile-steward" class="toggle-checkbox absolute block rounded-full bg-white border-4 appearance-none cursor-pointer"/><label for="profile-steward" class="toggle-label block overflow-hidden rounded-full bg-gray-600 cursor-pointer"></label></div></div>
+                    <!-- END: Added Steward Toggle -->
+                </div>
+            </div><div class="flex justify-end gap-4 mt-4"><button type="button" class="btn btn-secondary cancel-modal-btn">ביטול</button><button type="submit" id="save-profile-btn" class="btn btn-primary">שמור פרופיל</button></div></form></div></div>
     <div id="details-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-md text-center"><h3 id="details-modal-title" class="text-2xl font-bold mb-4" style="color: var(--primary-gold);"></h3><div id="details-modal-content" class="text-left space-y-2"></div><div id="details-modal-qr-code" class="flex justify-center my-6"></div><div class="text-center mt-4"><button type="button" class="btn btn-secondary" id="close-details-modal">סגור</button></div></div></div>
     <div id="scanner-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-lg"><h3 class="text-2xl font-bold mb-6 text-center">סרוק קוד QR</h3><div id="reader" class="w-full bg-gray-800 rounded-lg overflow-hidden"></div><div class="text-center mt-4"><button type="button" class="btn btn-secondary" id="cancel-scanner-modal">סגור</button></div></div></div>
     <div id="qr-code-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden p-4">
@@ -231,31 +242,102 @@
             const data = { name: document.getElementById('manager-name').value, phone: document.getElementById('manager-phone').value, idNumber: document.getElementById('manager-id-number').value, responsibility: document.getElementById('manager-responsibility').value, sites, imageUrl: document.getElementById('manager-image-url').value };
             return { data, id: document.getElementById('manager-id').value, needsImage: true };
         }, () => openManagerModal());
-        const openProfileModal = (profile = null) => { /* ... unchanged ... */ 
+        
+        const openProfileModal = (profile = null) => { 
              const form = document.getElementById('profile-form'); form.reset(); resetImageUploader('profile');
             const saveBtn = document.getElementById('save-profile-btn'); saveBtn.disabled = false; saveBtn.textContent = "שמור פרופיל";
-            document.getElementById('profile-id').value = profile ? profile.id : ''; document.getElementById('profile-modal-title').textContent = profile ? 'ערוך פרופיל' : 'הוסף פרופיל חדש';
+            document.getElementById('profile-id').value = profile ? profile.id : '';
+            document.getElementById('profile-modal-title').textContent = profile ? 'ערוך פרופיל' : 'הוסף פרופיל חדש';
+
+            // Set defaults for new profile
+            document.getElementById('profile-active').checked = true;
+            document.getElementById('profile-steward').checked = false;
+            
             if (profile) {
-                 document.getElementById('profile-name').value = profile.name; document.getElementById('profile-phone').value = profile.phone; document.getElementById('profile-id-number').value = profile.idNumber; document.getElementById('profile-role').value = profile.role; document.getElementById('profile-active').checked = profile.isActive; document.getElementById('profile-image-url').value = profile.imageUrl || '';
-                 if(profile.imageUrl) { document.getElementById('profile-image-preview').src = profile.imageUrl; document.getElementById('profile-image-filename').textContent = 'תמונה קיימת'; document.getElementById('profile-image-status').innerHTML = `<a href="${profile.imageUrl}" target="_blank" style="color: var(--primary-gold);">הצג תמונה</a>`; }
-                 document.getElementById('profile-manager').value = profile.manager.id; const siteIds = profile.sites.map(s => s.id);
+                 document.getElementById('profile-name').value = profile.name;
+                 document.getElementById('profile-phone').value = profile.phone;
+                 document.getElementById('profile-id-number').value = profile.idNumber;
+                 document.getElementById('profile-role').value = profile.role;
+                 document.getElementById('profile-active').checked = profile.isActive;
+                 // START: Set steward toggle state on edit
+                 document.getElementById('profile-steward').checked = profile.isSteward || false;
+                 // END: Set steward toggle state on edit
+                 document.getElementById('profile-image-url').value = profile.imageUrl || '';
+                 if(profile.imageUrl) {
+                    document.getElementById('profile-image-preview').src = profile.imageUrl;
+                    document.getElementById('profile-image-filename').textContent = 'תמונה קיימת';
+                    document.getElementById('profile-image-status').innerHTML = `<a href="${profile.imageUrl}" target="_blank" style="color: var(--primary-gold);">הצג תמונה</a>`;
+                 }
+                 document.getElementById('profile-manager').value = profile.manager.id;
+                 const siteIds = profile.sites.map(s => s.id);
                  Array.from(document.getElementById('profile-sites').options).forEach(opt => opt.selected = siteIds.includes(opt.value));
-            } openModal(document.getElementById('profile-modal'));
+            }
+            openModal(document.getElementById('profile-modal'));
         };
+
         setupForm(document.getElementById('profile-form'), document.getElementById('profile-modal'), document.getElementById('add-profile-btn'), 'profiles', () => {
-            const managerSelect = document.getElementById('profile-manager'); const manager = { id: managerSelect.value, name: managerSelect.options[managerSelect.selectedIndex].text };
+            const managerSelect = document.getElementById('profile-manager');
+            const manager = { id: managerSelect.value, name: managerSelect.options[managerSelect.selectedIndex].text };
             const sites = Array.from(document.getElementById('profile-sites').selectedOptions).map(opt => ({ id: opt.value, name: opt.textContent }));
-            const data = { name: document.getElementById('profile-name').value, phone: document.getElementById('profile-phone').value, idNumber: document.getElementById('profile-id-number').value, role: document.getElementById('profile-role').value, isActive: document.getElementById('profile-active').checked, manager, sites, imageUrl: document.getElementById('profile-image-url').value };
+            const data = {
+                name: document.getElementById('profile-name').value,
+                phone: document.getElementById('profile-phone').value,
+                idNumber: document.getElementById('profile-id-number').value,
+                role: document.getElementById('profile-role').value,
+                isActive: document.getElementById('profile-active').checked,
+                // START: Read steward value
+                isSteward: document.getElementById('profile-steward').checked,
+                // END: Read steward value
+                manager,
+                sites,
+                imageUrl: document.getElementById('profile-image-url').value
+            };
             return { data, id: document.getElementById('profile-id').value, needsImage: true };
         }, () => openProfileModal());
+        
         document.getElementById('select-all-manager-sites-btn').addEventListener('click', () => { Array.from(document.getElementById('manager-sites').options).forEach(o => o.selected = true); });
         document.getElementById('select-all-profile-sites-btn').addEventListener('click', () => { Array.from(document.getElementById('profile-sites').options).forEach(o => o.selected = true); });
-        const renderSites = (sites) => { /* ... unchanged ... */ 
+        
+        const renderSites = (sites) => {
             document.getElementById('sites-list').innerHTML = sites.length === 0 ? '<p class="text-gray-400">לא נמצאו אתרים.</p>' : sites.map(site => `<div class="item-card bg-gray-800 p-2 rounded-md flex justify-between items-center text-sm" data-type="site" data-id="${site.id}"><div><p class="font-semibold">${site.name}</p></div><div class="flex gap-2"><button class="card-btn edit-btn" data-type="site" data-id="${site.id}" title="ערוך">✏️</button><button class="card-btn delete-btn" data-type="site" data-id="${site.id}" title="מחק">🗑️</button></div></div>`).join('');
-            const optionsHtml = sites.map(s => `<option value="${s.id}">${s.name}</option>`).join(''); document.getElementById('manager-sites').innerHTML = optionsHtml; document.getElementById('profile-sites').innerHTML = optionsHtml;
+            const optionsHtml = sites.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            document.getElementById('manager-sites').innerHTML = optionsHtml;
+            document.getElementById('profile-sites').innerHTML = optionsHtml;
         };
         const renderManagers = (managers) => { document.getElementById('managers-list').innerHTML = managers.length === 0 ? '<p class="text-gray-400">לא נמצאו מנהלים.</p>' : managers.map(m => `<div class="item-card bg-gray-800 p-2 rounded-md flex justify-between items-center text-sm" data-type="manager" data-id="${m.id}"><div class="flex items-center gap-2"><img src="${m.imageUrl || 'https://placehold.co/32x32'}" class="w-8 h-8 rounded-full object-cover"><p>${m.name}</p></div><div class="flex gap-1"><button class="card-btn qr-btn" data-type="manager" data-id="${m.id}" title="הצג ברקוד"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16M12 4v16m8-8H4"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h2v2H4zm0 8h2v2H4zm8-8h2v2h-2zm0 8h2v2h-2zm8-8h2v2h-2zm0 8h2v2h-2zM4 4h2v2H4zm8 0h2v2h-2zm8 0h2v2h-2z"></path></svg></button><button class="card-btn edit-btn" data-type="manager" data-id="${m.id}" title="ערוך">✏️</button><button class="card-btn delete-btn" data-type="manager" data-id="${m.id}" title="מחק">🗑️</button></div></div>`).join(''); document.getElementById('profile-manager').innerHTML = `<option value="" disabled selected>בחר מנהל...</option>` + managers.map(m => `<option value="${m.id}">${m.name}</option>`).join(''); };
-        const renderProfiles = (profiles) => { document.getElementById('profiles-list').innerHTML = profiles.length === 0 ? '<p class="text-gray-400 text-center col-span-full">לא נמצאו פרופילים.</p>' : profiles.map(p => `<div class="item-card bg-gray-800 p-4 rounded-lg flex items-start gap-4" data-type="profile" data-id="${p.id}"><img src="${p.imageUrl || 'https://placehold.co/64x64'}" alt="Profile" class="w-16 h-16 rounded-full object-cover"><div class="flex-grow"><h4 class="font-bold text-lg">${p.name}</h4><p class="text-sm" style="color:var(--primary-gold);">${p.role}</p><p class="text-xs text-gray-400 mt-1">אחראי: ${p.manager.name}</p><div class="mt-2">${p.isActive ? '<span class="text-xs text-green-400 bg-green-900 px-2 py-1 rounded-full">פעיל</span>' : '<span class="text-xs text-red-400 bg-red-900 px-2 py-1 rounded-full">לא פעיל</span>'}</div></div><div class="flex flex-col gap-1"><button class="card-btn qr-btn" data-type="profile" data-id="${p.id}" title="הצג ברקוד"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4h2v2H4V4zm4 0h2v2H8V4zm4 0h2v2h-2V4zm-8 4h2v2H4V8zm4 0h2v2H8V8zm4 0h2v2h-2V8zM4 12h2v2H4v-2zm4 0h2v2H8v-2zm4 0h2v2h-2v-2z"></path></svg></button><button class="card-btn edit-btn" data-type="profile" data-id="${p.id}" title="ערוך">✏️</button><button class="card-btn delete-btn" data-type="profile" data-id="${p.id}" title="מחק">🗑️</button></div></div>`).join(''); };
+        const renderProfiles = (profiles) => {
+            const profilesList = document.getElementById('profiles-list');
+            if (profiles.length === 0) {
+                profilesList.innerHTML = '<p class="text-gray-400 text-center col-span-full">לא נמצאו פרופילים.</p>';
+                return;
+            }
+            profilesList.innerHTML = profiles.map(p => {
+                const activeBadge = p.isActive 
+                    ? '<span class="text-xs text-green-400 bg-green-900 px-2 py-1 rounded-full">פעיל</span>' 
+                    : '<span class="text-xs text-red-400 bg-red-900 px-2 py-1 rounded-full">לא פעיל</span>';
+                
+                // START: Add steward badge
+                const stewardBadge = p.isSteward
+                    ? '<span class="text-xs text-blue-400 bg-blue-800 px-2 py-1 rounded-full">סדרן</span>'
+                    : '';
+                // END: Add steward badge
+
+                return `<div class="item-card bg-gray-800 p-4 rounded-lg flex items-start gap-4" data-type="profile" data-id="${p.id}">
+                    <img src="${p.imageUrl || 'https://placehold.co/64x64'}" alt="Profile" class="w-16 h-16 rounded-full object-cover">
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-lg">${p.name}</h4>
+                        <p class="text-sm" style="color:var(--primary-gold);">${p.role}</p>
+                        <p class="text-xs text-gray-400 mt-1">אחראי: ${p.manager.name}</p>
+                        <div class="mt-2 flex gap-2">${activeBadge} ${stewardBadge}</div>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <button class="card-btn qr-btn" data-type="profile" data-id="${p.id}" title="הצג ברקוד"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4h2v2H4V4zm4 0h2v2H8V4zm4 0h2v2h-2V4zm-8 4h2v2H4V8zm4 0h2v2H8V8zm4 0h2v2h-2V8zM4 12h2v2H4v-2zm4 0h2v2H8v-2zm4 0h2v2h-2v-2z"></path></svg></button>
+                        <button class="card-btn edit-btn" data-type="profile" data-id="${p.id}" title="ערוך">✏️</button>
+                        <button class="card-btn delete-btn" data-type="profile" data-id="${p.id}" title="מחק">🗑️</button>
+                    </div>
+                </div>`;
+            }).join('');
+        };
         const showDetails = (type, data) => { /* ... unchanged ... */
             const titleEl = document.getElementById('details-modal-title'), contentEl = document.getElementById('details-modal-content'), qrEl = document.getElementById('details-modal-qr-code');
             contentEl.innerHTML = ''; qrEl.innerHTML = ''; let contentHTML = '';
@@ -264,7 +346,7 @@
                 const sitesHtml = data.sites.map(s => `<span class="bg-gray-700 text-gray-300 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">${s.name}</span>`).join(' ');
                 contentHTML = `<div class="flex items-center gap-4 mb-4"><img src="${data.imageUrl}" class="w-20 h-20 rounded-full object-cover border-2" style="border-color: var(--primary-gold);"><h4 class="text-xl font-bold">${data.name}</h4></div><p><strong>ת.ז.:</strong> ${data.idNumber}</p><p><strong>טלפון:</strong> ${data.phone}</p>`;
                 if (type === 'manager') { titleEl.textContent = 'פרטי מנהל'; contentHTML += `<p><strong>אחריות:</strong> ${data.responsibility}</p>`; } 
-                else { titleEl.textContent = 'פרטי פרופיל'; contentHTML += `<p><strong>תפקיד:</strong> ${data.role}</p><p><strong>מנהל:</strong> ${data.manager.name}</p><p><strong>סטטוס:</strong> ${data.isActive ? '<span class="text-green-400">פעיל</span>' : '<span class="text-red-400">לא פעיל</span>'}</p>`; }
+                else { titleEl.textContent = 'פרטי פרופיל'; contentHTML += `<p><strong>תפקיד:</strong> ${data.role}</p><p><strong>מנהל:</strong> ${data.manager.name}</p><p><strong>סטטוס:</strong> ${data.isActive ? '<span class="text-green-400">פעיל</span>' : '<span class="text-red-400">לא פעיל</span>'} ${data.isSteward ? '<span class="text-blue-400">סדרן</span>' : ''}</p>`; }
                 contentHTML += `<div class="mt-2"><strong class="block mb-1">אתרים:</strong> ${sitesHtml}</div>`;
                 new QRCode(qrEl, { text: data.id, width: 128, height: 128, colorDark: "#E0E0E0", colorLight: "#1E1E1E" });
             } contentEl.innerHTML = contentHTML; openModal(document.getElementById('details-modal'));
@@ -287,32 +369,19 @@
             const name = document.getElementById('qr-modal-name').textContent;
             
             showLoading('יוצר תמונה...');
-            // Use a library or a more robust method for converting HTML to Canvas if available
-            // This is a simplified approach
-            const tempCanvas = document.createElement('canvas');
-            const qrCanvas = area.querySelector('canvas');
-            const ctx = tempCanvas.getContext('2d');
-            
-            const padding = 20;
-            const nameFontSize = 24;
-            tempCanvas.width = qrCanvas.width + (padding * 2);
-            tempCanvas.height = qrCanvas.height + (padding * 2) + nameFontSize + 10;
-            
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-            
-            ctx.fillStyle = 'black';
-            ctx.font = `bold ${nameFontSize}px Assistant`;
-            ctx.textAlign = 'center';
-            ctx.fillText(name, tempCanvas.width / 2, padding + nameFontSize - 5);
-            
-            ctx.drawImage(qrCanvas, padding, padding + nameFontSize + 10);
-            
-            const link = document.createElement('a');
-            link.download = `QR_Code_${name.replace(/\s/g, '_')}.png`;
-            link.href = tempCanvas.toDataURL('image/png');
-            link.click();
-            hideLoading();
+            try {
+                const html2canvas = (await import('https://cdn.skypack.dev/html2canvas')).default;
+                const canvas = await html2canvas(area, { backgroundColor: '#ffffff', scale: 3 });
+                const link = document.createElement('a');
+                link.download = `QR_Code_${name.replace(/\s/g, '_')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) {
+                console.error("Failed to download QR code image:", err);
+                alert("שגיאה בהורדת התמונה. נסה שוב.");
+            } finally {
+                hideLoading();
+            }
         });
 
         document.body.addEventListener('click', async (e) => {
@@ -358,5 +427,4 @@
     </script>
 </body>
 </html>
-
 

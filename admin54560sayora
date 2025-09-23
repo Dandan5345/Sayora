@@ -12,134 +12,64 @@
         :root {
             --bg-dark: #121212;
             --bg-surface: #1E1E1E;
-            --primary-gold: #FFD700;
-            --primary-gold-hover: #FFC700;
+            --primary-gold: #c09a3e;
+            --primary-gold-hover: #d4af37;
             --text-light: #E0E0E0;
             --border-color: #444444;
         }
-
-        body {
-            font-family: 'Assistant', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-        }
-
-        .modal-backdrop {
-            background-color: rgba(0,0,0,0.8);
-        }
-
-        .form-input, .form-select, .form-textarea {
-            background-color: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            color: var(--text-light);
-            border-radius: 0.5rem;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            outline: none;
-            border-color: var(--primary-gold);
-            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.4);
-        }
-        
-        .form-select option {
-            background-color: var(--bg-surface);
-            color: var(--text-light);
-        }
-
-        .btn {
-            border-radius: 0.5rem;
-            font-weight: bold;
-            padding: 0.6rem 1.2rem;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-gold);
-            color: var(--bg-dark);
-        }
-        .btn-primary:hover {
-            background-color: var(--primary-gold-hover);
-            transform: translateY(-2px);
-        }
-        .btn-primary:disabled {
-            background-color: #555;
-            color: #999;
-            cursor: not-allowed;
-        }
-
-        .btn-secondary {
-            background-color: #333;
-            color: var(--text-light);
-            border: 1px solid var(--border-color);
-        }
-        .btn-secondary:hover {
-            background-color: #444;
-        }
-
-        .toggle-bg:after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            background: white;
-            border-radius: 50%;
-            transition: 0.3s;
-            width: 20px;
-            height: 20px;
-        }
-        input:checked + .toggle-bg:after {
-            transform: translateX(100%);
-        }
-        input:checked + .toggle-bg {
-            background: var(--primary-gold);
-        }
-        .card {
-            background-color: var(--bg-surface);
-            border: 1px solid var(--border-color);
-        }
+        body { font-family: 'Assistant', sans-serif; background-color: var(--bg-dark); color: var(--text-light); }
+        .modal-backdrop { background-color: rgba(0,0,0,0.8); }
+        .modal-content { background-color: var(--bg-surface); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
+        .form-input, .form-select, .form-textarea { background-color: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-light); border-radius: 0.5rem; transition: border-color 0.3s, box-shadow 0.3s; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary-gold); box-shadow: 0 0 0 2px rgba(192, 154, 62, 0.4); }
+        .btn { border-radius: 0.5rem; font-weight: bold; padding: 0.6rem 1.2rem; transition: all 0.3s; cursor: pointer; }
+        .btn-primary { background-color: var(--primary-gold); color: var(--bg-dark); }
+        .btn-primary:hover { background-color: var(--primary-gold-hover); transform: translateY(-2px); }
+        .btn-primary:disabled { background-color: #555; color: #999; cursor: not-allowed; transform: none; }
+        .btn-secondary { background-color: #333; color: var(--text-light); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background-color: #444; }
+        .toggle-bg:after { content: ''; position: absolute; top: 2px; left: 2px; background: white; border-radius: 50%; transition: 0.3s; width: 20px; height: 20px; }
+        input:checked + .toggle-bg:after { transform: translateX(100%); }
+        input:checked + .toggle-bg { background: var(--primary-gold); }
+        .item-card { cursor: pointer; transition: background-color 0.2s, transform 0.2s; }
+        .item-card:hover { background-color: #2a2a2a; transform: translateY(-3px); }
+        .progress-bar-bg { background-color: #333; }
+        .progress-bar-fg { background-color: var(--primary-gold); transition: width 0.2s ease-in-out; }
     </style>
 </head>
 <body class="antialiased">
 
-    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50">
-        <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-yellow-400"></div>
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex-col gap-4 justify-center items-center z-50 hidden">
+        <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2" style="border-color: var(--primary-gold);"></div>
+        <p id="loading-text" class="text-lg">טוען...</p>
     </div>
 
     <div class="container mx-auto p-4 md:p-8">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-gray-700 pb-4">
-            <div class="flex items-center">
-                <img src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Festival Logo" class="w-16 h-16 mr-4 rounded-full">
-                <h1 class="text-3xl font-bold text-white">פאנל ניהול - <span class="text-yellow-400">SAYORA FESTIVAL</span></h1>
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 border-b-2 pb-6" style="border-color: var(--primary-gold);">
+            <div class="flex items-center gap-4">
+                <img src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Festival Logo" class="w-20 h-20 md:w-24 md:h-24 rounded-full shadow-lg" style="box-shadow: 0 0 15px var(--primary-gold);">
+                <h1 class="text-3xl md:text-5xl font-bold text-white tracking-wider">SAYORA<span style="color: var(--primary-gold);"> FESTIVAL</span></h1>
             </div>
-            <div class="mt-4 md:mt-0">
-                 <button id="scan-qr-btn" class="btn btn-primary">
-                    סרוק ברקוד
-                </button>
+            <div class="mt-6 md:mt-0">
+                 <button id="scan-qr-btn" class="btn btn-primary text-lg">סרוק ברקוד</button>
             </div>
         </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left Column: Sites & Managers -->
             <div class="lg:col-span-1 space-y-8">
-                <!-- Site Management -->
-                <div class="card p-6 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-semibold mb-4 text-yellow-400">ניהול אתרים</h2>
+                <div class="bg-transparent p-6 rounded-lg shadow-lg border border-gray-800">
+                    <h2 class="text-2xl font-semibold mb-4" style="color: var(--primary-gold);">ניהול אתרים</h2>
                     <button id="add-site-btn" class="w-full btn btn-primary mb-4">הוסף אתר חדש</button>
                     <div id="sites-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
                 </div>
-                 <!-- Manager Management -->
-                <div class="card p-6 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-semibold mb-4 text-yellow-400">ניהול מנהלים</h2>
+                <div class="bg-transparent p-6 rounded-lg shadow-lg border border-gray-800">
+                    <h2 class="text-2xl font-semibold mb-4" style="color: var(--primary-gold);">ניהול מנהלים</h2>
                     <button id="add-manager-btn" class="w-full btn btn-primary mb-4">הוסף מנהל חדש</button>
                     <div id="managers-list" class="space-y-3 max-h-60 overflow-y-auto"></div>
                 </div>
             </div>
-
-            <!-- Right Column: Profiles -->
-            <div class="card p-6 rounded-lg shadow-lg lg:col-span-2">
-                <h2 class="text-2xl font-semibold mb-4 text-yellow-400">ניהול פרופילים</h2>
+            <div class="bg-transparent p-6 rounded-lg shadow-lg lg:col-span-2 border border-gray-800">
+                <h2 class="text-2xl font-semibold mb-4" style="color: var(--primary-gold);">ניהול פרופילים</h2>
                 <button id="add-profile-btn" class="w-full btn btn-primary mb-4">הוסף פרופיל חדש</button>
                  <div id="profiles-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[34rem] overflow-y-auto p-2"></div>
             </div>
@@ -147,528 +77,305 @@
     </div>
 
     <!-- Modals -->
-
-    <!-- Add/Edit Site Modal -->
-    <div id="site-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden">
-        <div class="card p-8 rounded-lg shadow-2xl w-full max-w-md mx-4">
-            <h3 id="site-modal-title" class="text-2xl font-bold mb-6">הוסף אתר חדש</h3>
-            <form id="site-form">
-                <input type="hidden" id="site-id">
-                <div class="mb-4">
-                    <label for="site-name" class="block mb-2">שם האתר <span class="text-red-500">*</span></label>
-                    <input type="text" id="site-name" class="w-full p-2 form-input" required>
-                </div>
-                <div class="mb-6">
-                    <label for="site-details" class="block mb-2">פירוט</label>
-                    <textarea id="site-details" class="w-full p-2 form-textarea" rows="3"></textarea>
-                </div>
-                <div class="flex justify-end gap-4">
-                    <button type="button" class="btn btn-secondary cancel-modal-btn">ביטול</button>
-                    <button type="submit" class="btn btn-primary">שמור</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Add/Edit Manager Modal -->
-    <div id="manager-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden">
-        <div class="card p-8 rounded-lg shadow-2xl w-full max-w-lg mx-4">
-            <h3 id="manager-modal-title" class="text-2xl font-bold mb-6">הוסף מנהל חדש</h3>
-            <form id="manager-form" novalidate>
-                 <input type="hidden" id="manager-id">
-                 <input type="hidden" id="manager-image-url">
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="manager-name" class="block mb-2">שם מלא <span class="text-red-500">*</span></label>
-                        <input type="text" id="manager-name" class="w-full p-2 form-input" required>
-                    </div>
-                    <div>
-                        <label for="manager-phone" class="block mb-2">מספר טלפון <span class="text-red-500">*</span></label>
-                        <input type="tel" id="manager-phone" class="w-full p-2 form-input" required>
-                    </div>
-                    <div>
-                        <label for="manager-id-number" class="block mb-2">תעודת זהות <span class="text-red-500">*</span></label>
-                        <input type="text" id="manager-id-number" class="w-full p-2 form-input" required>
-                    </div>
-                    <div>
-                        <label for="manager-sites" class="block mb-2">אתרים מורשים <span class="text-red-500">*</span></label>
-                        <select id="manager-sites" class="w-full p-2 form-select" multiple required></select>
-                    </div>
-                    <div class="md:col-span-2">
-                        <label for="manager-responsibility" class="block mb-2">אחריות <span class="text-red-500">*</span></label>
-                        <textarea id="manager-responsibility" class="w-full p-2 form-textarea" rows="3" required></textarea>
-                    </div>
-                     <div class="md:col-span-2">
-                        <label for="manager-image-input" class="block mb-2">תמונת פרופיל <span class="text-red-500">*</span></label>
-                        <input type="file" id="manager-image-input" class="w-full p-2 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100" accept="image/*">
-                        <div id="manager-image-status" class="text-sm mt-2"></div>
-                    </div>
-                </div>
-                <div class="flex justify-end gap-4 mt-6">
-                    <button type="button" class="btn btn-secondary cancel-modal-btn">ביטול</button>
-                    <button type="submit" id="save-manager-btn" class="btn btn-primary">שמור מנהל</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Add/Edit Profile Modal -->
-    <div id="profile-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden">
-        <div class="card p-8 rounded-lg shadow-2xl w-full max-w-lg mx-4">
-            <h3 id="profile-modal-title" class="text-2xl font-bold mb-6">הוסף פרופיל חדש</h3>
-            <form id="profile-form" novalidate>
-                <input type="hidden" id="profile-id">
-                <input type="hidden" id="profile-image-url">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="profile-name" class="block mb-2">שם מלא <span class="text-red-500">*</span></label>
-                        <input type="text" id="profile-name" class="w-full p-2 form-input" required>
-                    </div>
-                    <div>
-                        <label for="profile-phone" class="block mb-2">מספר טלפון <span class="text-red-500">*</span></label>
-                        <input type="tel" id="profile-phone" class="w-full p-2 form-input" required>
-                    </div>
-                     <div>
-                        <label for="profile-id-number" class="block mb-2">תעודת זהות <span class="text-red-500">*</span></label>
-                        <input type="text" id="profile-id-number" class="w-full p-2 form-input" required>
-                    </div>
-                     <div>
-                        <label for="profile-role" class="block mb-2">תפקיד <span class="text-red-500">*</span></label>
-                        <input type="text" id="profile-role" class="w-full p-2 form-input" required>
-                    </div>
-                    <div>
-                        <label for="profile-manager" class="block mb-2">מנהל אחראי <span class="text-red-500">*</span></label>
-                        <select id="profile-manager" class="w-full p-2 form-select" required></select>
-                    </div>
-                    <div>
-                        <label for="profile-sites" class="block mb-2">גישה לאתרים <span class="text-red-500">*</span></label>
-                        <select id="profile-sites" class="w-full p-2 form-select" multiple required></select>
-                    </div>
-                     <div class="md:col-span-2">
-                        <label for="profile-image-input" class="block mb-2">תמונת פרופיל <span class="text-red-500">*</span></label>
-                        <input type="file" id="profile-image-input" class="w-full p-2 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100" accept="image/*">
-                        <div id="profile-image-status" class="text-sm mt-2"></div>
-                    </div>
-                    <div class="flex items-center md:col-span-2">
-                        <label class="block mr-4">פרופיל פעיל</label>
-                        <div class="relative inline-block w-12 mr-2 align-middle select-none">
-                            <input type="checkbox" name="toggle" id="profile-active" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                            <label for="profile-active" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer toggle-bg"></label>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex justify-end gap-4 mt-4">
-                    <button type="button" class="btn btn-secondary cancel-modal-btn">ביטול</button>
-                    <button type="submit" id="save-profile-btn" class="btn btn-primary">שמור פרופיל</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- QR Scanner & Details Modals -->
-    <div id="scanner-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden"><div class="card p-8 rounded-lg shadow-2xl w-full max-w-lg mx-4"><h3 class="text-2xl font-bold mb-6 text-center">סרוק קוד QR</h3><div id="reader" class="w-full"></div><div class="text-center mt-4"><button type="button" class="btn btn-secondary" id="cancel-scanner-modal">סגור</button></div></div></div>
-    <div id="profile-details-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden"><div class="card p-8 rounded-lg shadow-2xl w-full max-w-md mx-4 text-center"><div id="profile-details-content"></div><div id="profile-qr-code" class="flex justify-center my-4"></div><div class="text-center mt-4"><button type="button" class="btn btn-secondary" id="close-profile-details-modal">סגור</button></div></div></div>
+    <div id="site-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-md"><h3 id="site-modal-title" class="text-2xl font-bold mb-6">הוסף אתר חדש</h3><form id="site-form"><input type="hidden" id="site-id"><div class="mb-4"><label for="site-name" class="block mb-2">שם האתר <span class="text-red-500">*</span></label><input type="text" id="site-name" class="w-full p-2 form-input" required></div><div class="mb-6"><label for="site-details" class="block mb-2">פירוט</label><textarea id="site-details" class="w-full p-2 form-textarea" rows="3"></textarea></div><div class="flex justify-end gap-4"><button type="button" class="btn btn-secondary cancel-modal-btn">ביטול</button><button type="submit" class="btn btn-primary">שמור</button></div></form></div></div>
+    <div id="manager-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-lg"><h3 id="manager-modal-title" class="text-2xl font-bold mb-6">הוסף מנהל חדש</h3><form id="manager-form" novalidate><input type="hidden" id="manager-id"><input type="hidden" id="manager-image-url"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="manager-name" class="block mb-2">שם מלא <span class="text-red-500">*</span></label><input type="text" id="manager-name" class="w-full p-2 form-input" required></div><div><label for="manager-phone" class="block mb-2">מספר טלפון <span class="text-red-500">*</span></label><input type="tel" id="manager-phone" class="w-full p-2 form-input" required></div><div><label for="manager-id-number" class="block mb-2">תעודת זהות <span class="text-red-500">*</span></label><input type="text" id="manager-id-number" class="w-full p-2 form-input" required></div><div><label for="manager-sites" class="block mb-2">אתרים מורשים <span class="text-red-500">*</span></label><select id="manager-sites" class="w-full p-2 form-select" multiple required></select></div><div class="md:col-span-2"><label for="manager-responsibility" class="block mb-2">אחריות <span class="text-red-500">*</span></label><textarea id="manager-responsibility" class="w-full p-2 form-textarea" rows="3" required></textarea></div><div class="md:col-span-2"><label for="manager-image-input" class="block mb-2">תמונת פרופיל <span class="text-red-500">*</span></label><input type="file" id="manager-image-input" class="w-full p-2 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold" style="color: var(--primary-gold); --tw-ring-color: var(--primary-gold);" accept="image/*"><div id="manager-image-status" class="text-sm mt-2"></div><div id="manager-upload-progress" class="hidden mt-2"><div class="progress-bar-bg w-full rounded-full h-2.5"><div id="manager-progress-bar" class="progress-bar-fg h-2.5 rounded-full" style="width: 0%"></div></div><div id="manager-upload-status" class="text-sm text-center mt-1"></div></div></div></div><div class="flex justify-end gap-4 mt-6"><button type="button" class="btn btn-secondary cancel-modal-btn">ביטול</button><button type="submit" id="save-manager-btn" class="btn btn-primary">שמור מנהל</button></div></form></div></div>
+    <div id="profile-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-lg"><h3 id="profile-modal-title" class="text-2xl font-bold mb-6">הוסף פרופיל חדש</h3><form id="profile-form" novalidate><input type="hidden" id="profile-id"><input type="hidden" id="profile-image-url"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="profile-name" class="block mb-2">שם מלא <span class="text-red-500">*</span></label><input type="text" id="profile-name" class="w-full p-2 form-input" required></div><div><label for="profile-phone" class="block mb-2">מספר טלפון <span class="text-red-500">*</span></label><input type="tel" id="profile-phone" class="w-full p-2 form-input" required></div><div><label for="profile-id-number" class="block mb-2">תעודת זהות <span class="text-red-500">*</span></label><input type="text" id="profile-id-number" class="w-full p-2 form-input" required></div><div><label for="profile-role" class="block mb-2">תפקיד <span class="text-red-500">*</span></label><input type="text" id="profile-role" class="w-full p-2 form-input" required></div><div><label for="profile-manager" class="block mb-2">מנהל אחראי <span class="text-red-500">*</span></label><select id="profile-manager" class="w-full p-2 form-select" required></select></div><div><label for="profile-sites" class="block mb-2">גישה לאתרים <span class="text-red-500">*</span></label><select id="profile-sites" class="w-full p-2 form-select" multiple required></select></div><div class="md:col-span-2"><label for="profile-image-input" class="block mb-2">תמונת פרופיל <span class="text-red-500">*</span></label><input type="file" id="profile-image-input" class="w-full p-2 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold" style="color: var(--primary-gold); --tw-ring-color: var(--primary-gold);" accept="image/*"><div id="profile-image-status" class="text-sm mt-2"></div><div id="profile-upload-progress" class="hidden mt-2"><div class="progress-bar-bg w-full rounded-full h-2.5"><div id="profile-progress-bar" class="progress-bar-fg h-2.5 rounded-full" style="width: 0%"></div></div><div id="profile-upload-status" class="text-sm text-center mt-1"></div></div></div><div class="flex items-center md:col-span-2"><label class="block mr-4">פרופיל פעיל</label><div class="relative inline-block w-12 mr-2 align-middle select-none"><input type="checkbox" name="toggle" id="profile-active" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/><label for="profile-active" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer toggle-bg"></label></div></div></div><div class="flex justify-end gap-4 mt-4"><button type="button" class="btn btn-secondary cancel-modal-btn">ביטול</button><button type="submit" id="save-profile-btn" class="btn btn-primary">שמור פרופיל</button></div></form></div></div>
+    <div id="details-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-md text-center"><h3 id="details-modal-title" class="text-2xl font-bold mb-4" style="color: var(--primary-gold);"></h3><div id="details-modal-content" class="text-left space-y-2"></div><div id="details-modal-qr-code" class="flex justify-center my-6"></div><div class="text-center mt-4"><button type="button" class="btn btn-secondary" id="close-details-modal">סגור</button></div></div></div>
+    <div id="scanner-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-lg"><h3 class="text-2xl font-bold mb-6 text-center">סרוק קוד QR</h3><div id="reader" class="w-full bg-gray-800 rounded-lg overflow-hidden"></div><div class="text-center mt-4"><button type="button" class="btn btn-secondary" id="cancel-scanner-modal">סגור</button></div></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
-        // --- CONFIGURATION ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAUdX5OhKdNVvXTwVMF6zul6zGhldqx_s0",
-            authDomain: "sayora-786c4.firebaseapp.com",
-            projectId: "sayora-786c4",
-            storageBucket: "sayora-786c4.firebasestorage.app",
-            messagingSenderId: "353491525675",
-            appId: "1:353491525675:web:0c59e5183e112e9bf84a6e",
-        };
-        const IMG_BB_API_KEY = "6843513a64f543faba0c5123d2cc1f03";
+        const firebaseConfig = { apiKey: "AIzaSyAUdX5OhKdNVvXTwVMF6zul6zGhldqx_s0", authDomain: "sayora-786c4.firebaseapp.com", projectId: "sayora-786c4", storageBucket: "sayora-786c4.firebasestorage.app", messagingSenderId: "353491525675", appId: "1:353491525675:web:0c59e5183e112e9bf84a6e" };
+        const IMGBB_API_KEY = "1be5a3162de22aed0f431b25ffb4b6cb"; // API key from user's example
 
-        // --- INITIALIZATION ---
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // --- DOM ELEMENTS ---
         const loadingOverlay = document.getElementById('loading-overlay');
         const siteModal = document.getElementById('site-modal');
         const managerModal = document.getElementById('manager-modal');
         const profileModal = document.getElementById('profile-modal');
-        
-        // Forms & Buttons
-        const siteForm = document.getElementById('site-form');
-        const managerForm = document.getElementById('manager-form');
-        const profileForm = document.getElementById('profile-form');
-        const addSiteBtn = document.getElementById('add-site-btn');
-        const addManagerBtn = document.getElementById('add-manager-btn');
-        const addProfileBtn = document.getElementById('add-profile-btn');
-
-        // Lists
-        const sitesList = document.getElementById('sites-list');
-        const managersList = document.getElementById('managers-list');
-        const profilesList = document.getElementById('profiles-list');
-
-        // Selects
-        const managerSitesSelect = document.getElementById('manager-sites');
-        const profileSitesSelect = document.getElementById('profile-sites');
-        const profileManagerSelect = document.getElementById('profile-manager');
-
-        // --- STATE ---
-        let allSites = [];
-        let allManagers = [];
+        const detailsModal = document.getElementById('details-modal');
         let html5QrcodeScanner;
 
-        // --- HELPER FUNCTIONS ---
-        const showLoading = () => loadingOverlay.style.display = 'flex';
+        const showLoading = (text = 'טוען...') => { document.getElementById('loading-text').textContent = text; loadingOverlay.style.display = 'flex'; }
         const hideLoading = () => loadingOverlay.style.display = 'none';
+        const openModal = (modal) => modal.style.display = 'flex';
+        const closeModal = (modal) => modal.style.display = 'none';
 
-        const openModal = (modalElement) => modalElement.style.display = 'flex';
-        const closeModal = (modalElement) => modalElement.style.display = 'none';
+        document.querySelectorAll('.cancel-modal-btn').forEach(btn => btn.addEventListener('click', () => btn.closest('.modal-backdrop').style.display = 'none'));
+        document.getElementById('close-details-modal').addEventListener('click', () => closeModal(detailsModal));
 
-        document.querySelectorAll('.cancel-modal-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                closeModal(siteModal);
-                closeModal(managerModal);
-                closeModal(profileModal);
+        const uploadImageWithProgress = (file, progressElements) => {
+            return new Promise((resolve, reject) => {
+                const { container, bar, status } = progressElements;
+                container.classList.remove('hidden');
+                status.textContent = 'ממיר תמונה...'; bar.style.width = '5%';
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64 = reader.result.split(',')[1];
+                    const formData = new FormData();
+                    formData.append('key', IMGBB_API_KEY);
+                    formData.append('image', base64);
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', 'https://api.imgbb.com/1/upload');
+                    xhr.upload.onprogress = (e) => {
+                        if (e.lengthComputable) {
+                            const percent = Math.min(95, 10 + (e.loaded / e.total) * 85);
+                            bar.style.width = `${percent}%`;
+                            status.textContent = `מעלה... ${Math.round(percent)}%`;
+                        }
+                    };
+                    xhr.onload = () => {
+                        try {
+                            const json = JSON.parse(xhr.responseText);
+                            if (xhr.status >= 200 && xhr.status < 300 && json.success) {
+                                bar.style.width = '100%'; status.textContent = 'העלאה הושלמה!';
+                                resolve(json.data.display_url);
+                            } else { reject(new Error(json.error?.message || `שגיאת שרת: ${xhr.status}`)); }
+                        } catch (err) { reject(new Error('תגובה לא תקינה מהשרת.')); }
+                    };
+                    xhr.onerror = () => reject(new Error('שגיאת רשת, לא ניתן להתחבר ל-ImgBB.'));
+                    xhr.send(formData);
+                };
+                reader.onerror = () => reject(new Error('לא ניתן היה לקרוא את קובץ התמונה.'));
+                reader.readAsDataURL(file);
             });
-        });
+        };
+        
+        // Handle image upload immediately on file selection
+        const handleImageSelection = async (e, formType) => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-        const uploadImage = async (file) => {
-            if (!file) return null;
-            const formData = new FormData();
-            formData.append('image', file);
+            const saveBtn = document.getElementById(`save-${formType}-btn`);
+            const imageUrlInput = document.getElementById(`${formType}-image-url`);
+            const progressElements = {
+                container: document.getElementById(`${formType}-upload-progress`),
+                bar: document.getElementById(`${formType}-progress-bar`),
+                status: document.getElementById(`${formType}-upload-status`)
+            };
+            
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'מעלה תמונה...';
+            imageUrlInput.value = '';
+            progressElements.status.textContent = '';
+            document.getElementById(`${formType}-image-status`).innerHTML = '';
+
             try {
-                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMG_BB_API_KEY}`, {
-                    method: 'POST',
-                    body: formData,
-                });
-                const result = await response.json();
-                if (result.success) {
-                    return result.data.display_url;
-                } else {
-                    throw new Error(result.error.message);
-                }
+                const url = await uploadImageWithProgress(file, progressElements);
+                imageUrlInput.value = url;
+                progressElements.status.innerHTML = `<span style="color: var(--primary-gold);">התמונה מוכנה לשמירה!</span>`;
             } catch (error) {
-                console.error('Image upload error:', error);
-                alert('שגיאה בהעלאת התמונה.');
-                return null;
+                console.error("Image upload failed:", error);
+                progressElements.status.innerHTML = `<span class="text-red-500">שגיאה בהעלאה: ${error.message}</span>`;
+                e.target.value = ''; 
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = `שמור ${formType === 'profile' ? 'פרופיל' : 'מנהל'}`;
             }
         };
 
-        // --- SITE MANAGEMENT ---
+        document.getElementById('profile-image-input').addEventListener('change', (e) => handleImageSelection(e, 'profile'));
+        document.getElementById('manager-image-input').addEventListener('change', (e) => handleImageSelection(e, 'manager'));
+
+        // Generic Form Setup
+        const setupForm = (formId, modal, openBtnId, collectionName, getFormData, openModalFn) => {
+            const form = document.getElementById(formId);
+            document.getElementById(openBtnId).addEventListener('click', () => openModalFn());
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!form.checkValidity()) { form.reportValidity(); return; }
+                const saveBtn = form.querySelector('button[type="submit"]');
+                saveBtn.disabled = true;
+                showLoading('שומר נתונים...');
+                try {
+                    const { data, id, needsImage } = getFormData();
+                    if (needsImage && !data.imageUrl) throw new Error("יש להעלות תמונה לפני השמירה.");
+                    if (id) await updateDoc(doc(db, collectionName, id), data);
+                    else await addDoc(collection(db, collectionName), data);
+                    closeModal(modal);
+                } catch (error) {
+                    console.error(`Error saving ${collectionName}:`, error);
+                    alert(`שגיאה בשמירת הנתונים: ${error.message}`);
+                } finally {
+                    hideLoading();
+                    saveBtn.disabled = false;
+                }
+            });
+        };
+        
+        // --- SITES ---
         const openSiteModal = (site = null) => {
-            siteForm.reset();
-            if (site) {
-                document.getElementById('site-modal-title').textContent = 'ערוך אתר';
-                document.getElementById('site-id').value = site.id;
-                document.getElementById('site-name').value = site.name;
-                document.getElementById('site-details').value = site.details;
-            } else {
-                document.getElementById('site-modal-title').textContent = 'הוסף אתר חדש';
-                document.getElementById('site-id').value = '';
-            }
+            const form = document.getElementById('site-form');
+            form.reset();
+            document.getElementById('site-id').value = site ? site.id : '';
+            document.getElementById('site-modal-title').textContent = site ? 'ערוך אתר' : 'הוסף אתר חדש';
+            if(site) { document.getElementById('site-name').value = site.name; document.getElementById('site-details').value = site.details; }
             openModal(siteModal);
         };
-        addSiteBtn.addEventListener('click', () => openSiteModal());
+        const siteForm = document.getElementById('site-form');
+        document.getElementById('add-site-btn').addEventListener('click', () => openSiteModal());
         siteForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            showLoading();
-            const id = document.getElementById('site-id').value;
-            const siteData = { name: document.getElementById('site-name').value, details: document.getElementById('site-details').value };
+            const saveBtn = siteForm.querySelector('button[type="submit"]');
+            saveBtn.disabled = true; showLoading('שומר אתר...');
             try {
-                if (id) await updateDoc(doc(db, 'sites', id), siteData);
-                else await addDoc(collection(db, 'sites'), siteData);
+                const data = { name: document.getElementById('site-name').value, details: document.getElementById('site-details').value };
+                const id = document.getElementById('site-id').value;
+                if (id) await updateDoc(doc(db, 'sites', id), data);
+                else await addDoc(collection(db, 'sites'), data);
                 closeModal(siteModal);
-            } catch (error) { console.error("Error saving site: ", error); } 
-            finally { hideLoading(); }
+            } catch (err) { alert('שגיאה בשמירת האתר.'); console.error(err); }
+            finally { hideLoading(); saveBtn.disabled = false; }
         });
 
-        // --- MANAGER MANAGEMENT ---
+
+        // --- MANAGERS ---
         const openManagerModal = (manager = null) => {
-            managerForm.reset();
-            document.getElementById('manager-image-status').textContent = '';
+            const form = document.getElementById('manager-form');
+            form.reset();
+            document.getElementById('manager-image-status').innerHTML = '';
+            document.getElementById('manager-upload-progress').classList.add('hidden');
+            document.getElementById('save-manager-btn').disabled = false; document.getElementById('save-manager-btn').textContent = "שמור מנהל";
+            document.getElementById('manager-id').value = manager ? manager.id : '';
+            document.getElementById('manager-modal-title').textContent = manager ? 'ערוך מנהל' : 'הוסף מנהל חדש';
             if (manager) {
-                document.getElementById('manager-modal-title').textContent = 'ערוך מנהל';
-                document.getElementById('manager-id').value = manager.id;
-                document.getElementById('manager-name').value = manager.name;
-                document.getElementById('manager-phone').value = manager.phone;
-                document.getElementById('manager-id-number').value = manager.idNumber;
-                document.getElementById('manager-responsibility').value = manager.responsibility;
+                document.getElementById('manager-name').value = manager.name; document.getElementById('manager-phone').value = manager.phone;
+                document.getElementById('manager-id-number').value = manager.idNumber; document.getElementById('manager-responsibility').value = manager.responsibility;
                 document.getElementById('manager-image-url').value = manager.imageUrl || '';
-                if(manager.imageUrl) document.getElementById('manager-image-status').innerHTML = `<a href="${manager.imageUrl}" target="_blank" class="text-yellow-400">תמונה קיימת</a>`;
-                
+                if(manager.imageUrl) document.getElementById('manager-image-status').innerHTML = `<a href="${manager.imageUrl}" target="_blank" style="color: var(--primary-gold);">תמונה קיימת</a>`;
                 const siteIds = manager.sites.map(s => s.id);
-                Array.from(managerSitesSelect.options).forEach(opt => opt.selected = siteIds.includes(opt.value));
-            } else {
-                document.getElementById('manager-modal-title').textContent = 'הוסף מנהל חדש';
-                document.getElementById('manager-id').value = '';
+                Array.from(document.getElementById('manager-sites').options).forEach(opt => opt.selected = siteIds.includes(opt.value));
             }
             openModal(managerModal);
         };
-        addManagerBtn.addEventListener('click', () => openManagerModal());
-        managerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!managerForm.checkValidity()) {
-                managerForm.reportValidity();
-                return;
-            }
-            const saveBtn = document.getElementById('save-manager-btn');
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'שומר...';
-            showLoading();
-
-            const imageFile = document.getElementById('manager-image-input').files[0];
-            let imageUrl = document.getElementById('manager-image-url').value;
-
-            if (imageFile) {
-                imageUrl = await uploadImage(imageFile);
-                if (!imageUrl) { // Stop if upload fails
-                    hideLoading();
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = 'שמור מנהל';
-                    return;
-                }
-            }
-
-            if (!imageUrl) {
-                alert('יש להעלות תמונת פרופיל.');
-                hideLoading();
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'שמור מנהל';
-                return;
-            }
-            
-            const selectedOptions = Array.from(managerSitesSelect.selectedOptions);
-            const sitesData = selectedOptions.map(opt => ({ id: opt.value, name: opt.textContent }));
-
-            const managerData = {
-                name: document.getElementById('manager-name').value,
-                phone: document.getElementById('manager-phone').value,
-                idNumber: document.getElementById('manager-id-number').value,
-                responsibility: document.getElementById('manager-responsibility').value,
-                sites: sitesData,
-                imageUrl: imageUrl,
+        setupForm('manager-form', managerModal, 'add-manager-btn', 'managers', () => {
+            const sites = Array.from(document.getElementById('manager-sites').selectedOptions).map(opt => ({ id: opt.value, name: opt.textContent }));
+            const data = {
+                name: document.getElementById('manager-name').value, phone: document.getElementById('manager-phone').value,
+                idNumber: document.getElementById('manager-id-number').value, responsibility: document.getElementById('manager-responsibility').value,
+                sites, imageUrl: document.getElementById('manager-image-url').value
             };
-
             const id = document.getElementById('manager-id').value;
-            try {
-                if (id) await updateDoc(doc(db, 'managers', id), managerData);
-                else await addDoc(collection(db, 'managers'), managerData);
-                closeModal(managerModal);
-            } catch (error) { console.error("Error saving manager:", error); } 
-            finally { 
-                hideLoading();
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'שמור מנהל';
-            }
-        });
+            return { data, id, needsImage: true };
+        }, () => openManagerModal());
 
-        // --- PROFILE MANAGEMENT ---
+        // --- PROFILES ---
         const openProfileModal = (profile = null) => {
-            profileForm.reset();
-            document.getElementById('profile-image-status').textContent = '';
+            const form = document.getElementById('profile-form');
+            form.reset();
+            document.getElementById('profile-image-status').innerHTML = '';
+            document.getElementById('profile-upload-progress').classList.add('hidden');
+            document.getElementById('save-profile-btn').disabled = false; document.getElementById('save-profile-btn').textContent = "שמור פרופיל";
+            document.getElementById('profile-id').value = profile ? profile.id : '';
+            document.getElementById('profile-modal-title').textContent = profile ? 'ערוך פרופיל' : 'הוסף פרופיל חדש';
             if (profile) {
-                 document.getElementById('profile-modal-title').textContent = 'ערוך פרופיל';
-                 document.getElementById('profile-id').value = profile.id;
-                 document.getElementById('profile-name').value = profile.name;
-                 document.getElementById('profile-phone').value = profile.phone;
-                 document.getElementById('profile-id-number').value = profile.idNumber;
-                 document.getElementById('profile-role').value = profile.role;
-                 document.getElementById('profile-active').checked = profile.isActive;
-                 document.getElementById('profile-image-url').value = profile.imageUrl || '';
-                 if(profile.imageUrl) document.getElementById('profile-image-status').innerHTML = `<a href="${profile.imageUrl}" target="_blank" class="text-yellow-400">תמונה קיימת</a>`;
-
-                 profileManagerSelect.value = profile.manager.id;
+                 document.getElementById('profile-name').value = profile.name; document.getElementById('profile-phone').value = profile.phone;
+                 document.getElementById('profile-id-number').value = profile.idNumber; document.getElementById('profile-role').value = profile.role;
+                 document.getElementById('profile-active').checked = profile.isActive; document.getElementById('profile-image-url').value = profile.imageUrl || '';
+                 if(profile.imageUrl) document.getElementById('profile-image-status').innerHTML = `<a href="${profile.imageUrl}" target="_blank" style="color: var(--primary-gold);">תמונה קיימת</a>`;
+                 document.getElementById('profile-manager').value = profile.manager.id;
                  const siteIds = profile.sites.map(s => s.id);
-                 Array.from(profileSitesSelect.options).forEach(opt => opt.selected = siteIds.includes(opt.value));
-            } else {
-                document.getElementById('profile-modal-title').textContent = 'הוסף פרופיל חדש';
-                document.getElementById('profile-id').value = '';
+                 Array.from(document.getElementById('profile-sites').options).forEach(opt => opt.selected = siteIds.includes(opt.value));
             }
             openModal(profileModal);
         };
-        addProfileBtn.addEventListener('click', () => openProfileModal());
-        profileForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!profileForm.checkValidity()) {
-                profileForm.reportValidity();
-                return;
-            }
-            const saveBtn = document.getElementById('save-profile-btn');
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'שומר...';
-            showLoading();
-
-            const imageFile = document.getElementById('profile-image-input').files[0];
-            let imageUrl = document.getElementById('profile-image-url').value;
-            if (imageFile) {
-                imageUrl = await uploadImage(imageFile);
-                 if (!imageUrl) { // Stop if upload fails
-                    hideLoading();
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = 'שמור פרופיל';
-                    return;
-                }
-            }
-
-            if (!imageUrl) {
-                alert('יש להעלות תמונת פרופיל.');
-                hideLoading();
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'שמור פרופיל';
-                return;
-            }
-
-            const selectedManager = profileManagerSelect.options[profileManagerSelect.selectedIndex];
-            const managerData = { id: selectedManager.value, name: selectedManager.textContent };
-
-            const selectedSites = Array.from(profileSitesSelect.selectedOptions);
-            const sitesData = selectedSites.map(opt => ({ id: opt.value, name: opt.textContent }));
-
-            const profileData = {
-                name: document.getElementById('profile-name').value,
-                phone: document.getElementById('profile-phone').value,
-                idNumber: document.getElementById('profile-id-number').value,
-                role: document.getElementById('profile-role').value,
-                manager: managerData,
-                sites: sitesData,
-                isActive: document.getElementById('profile-active').checked,
-                imageUrl: imageUrl,
+        setupForm('profile-form', profileModal, 'add-profile-btn', 'profiles', () => {
+            const managerSelect = document.getElementById('profile-manager');
+            const manager = { id: managerSelect.value, name: managerSelect.options[managerSelect.selectedIndex].text };
+            const sites = Array.from(document.getElementById('profile-sites').selectedOptions).map(opt => ({ id: opt.value, name: opt.textContent }));
+            const data = {
+                name: document.getElementById('profile-name').value, phone: document.getElementById('profile-phone').value,
+                idNumber: document.getElementById('profile-id-number').value, role: document.getElementById('profile-role').value,
+                isActive: document.getElementById('profile-active').checked, manager, sites, 
+                imageUrl: document.getElementById('profile-image-url').value
             };
-
             const id = document.getElementById('profile-id').value;
-            try {
-                if (id) await updateDoc(doc(db, 'profiles', id), profileData);
-                else await addDoc(collection(db, 'profiles'), profileData);
-                closeModal(profileModal);
-            } catch (error) { console.error("Error saving profile:", error); } 
-            finally { 
-                hideLoading();
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'שמור פרופיל';
-            }
-        });
+            return { data, id, needsImage: true };
+        }, () => openProfileModal());
 
-        // --- RENDER & UPDATE FUNCTIONS ---
+        // --- RENDER & DISPLAY ---
         const renderSites = (sites) => {
-            allSites = sites;
-            sitesList.innerHTML = sites.length === 0 ? '<p class="text-gray-400">לא נמצאו אתרים.</p>' : sites.map(site => `
-                <div class="bg-gray-800 p-2 rounded-md flex justify-between items-center text-sm">
-                    <div><p class="font-semibold">${site.name}</p><p class="text-xs text-gray-400">${site.details}</p></div>
-                    <div class="flex gap-2">
-                        <button class="edit-btn" data-type="site" data-id="${site.id}">✏️</button>
-                        <button class="delete-btn" data-type="site" data-id="${site.id}">🗑️</button>
-                    </div>
-                </div>`).join('');
-            
-            // Update select options in other forms
+            document.getElementById('sites-list').innerHTML = sites.length === 0 ? '<p class="text-gray-400">לא נמצאו אתרים.</p>' : sites.map(site => `
+                <div class="item-card bg-gray-800 p-2 rounded-md flex justify-between items-center text-sm" data-type="site" data-id="${site.id}"><div><p class="font-semibold">${site.name}</p></div><div class="flex gap-2"><button class="edit-btn" data-type="site" data-id="${site.id}">✏️</button><button class="delete-btn" data-type="site" data-id="${site.id}">🗑️</button></div></div>`).join('');
             const optionsHtml = sites.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            managerSitesSelect.innerHTML = optionsHtml;
-            profileSitesSelect.innerHTML = optionsHtml;
+            document.getElementById('manager-sites').innerHTML = optionsHtml;
+            document.getElementById('profile-sites').innerHTML = optionsHtml;
         };
-
         const renderManagers = (managers) => {
-            allManagers = managers;
-            managersList.innerHTML = managers.length === 0 ? '<p class="text-gray-400">לא נמצאו מנהלים.</p>' : managers.map(m => `
-                <div class="bg-gray-800 p-2 rounded-md flex justify-between items-center text-sm">
-                    <div class="flex items-center gap-2"><img src="${m.imageUrl}" class="w-8 h-8 rounded-full object-cover"><p>${m.name}</p></div>
-                     <div class="flex gap-2">
-                        <button class="edit-btn" data-type="manager" data-id="${m.id}">✏️</button>
-                        <button class="delete-btn" data-type="manager" data-id="${m.id}">🗑️</button>
-                    </div>
-                </div>`).join('');
-            
-            // Update manager select in profile form
-            profileManagerSelect.innerHTML = `<option value="" disabled selected>בחר מנהל...</option>` + managers.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+            document.getElementById('managers-list').innerHTML = managers.length === 0 ? '<p class="text-gray-400">לא נמצאו מנהלים.</p>' : managers.map(m => `
+                <div class="item-card bg-gray-800 p-2 rounded-md flex justify-between items-center text-sm" data-type="manager" data-id="${m.id}"><div class="flex items-center gap-2"><img src="${m.imageUrl || 'https://placehold.co/32x32'}" class="w-8 h-8 rounded-full object-cover"><p>${m.name}</p></div><div class="flex gap-2"><button class="edit-btn" data-type="manager" data-id="${m.id}">✏️</button><button class="delete-btn" data-type="manager" data-id="${m.id}">🗑️</button></div></div>`).join('');
+            document.getElementById('profile-manager').innerHTML = `<option value="" disabled selected>בחר מנהל...</option>` + managers.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
         };
-        
         const renderProfiles = (profiles) => {
-            profilesList.innerHTML = profiles.length === 0 ? '<p class="text-gray-400 text-center col-span-full">לא נמצאו פרופילים.</p>' : profiles.map(p => `
-                <div class="bg-gray-800 p-4 rounded-lg flex items-start gap-4">
-                    <img src="${p.imageUrl}" alt="Profile" class="w-16 h-16 rounded-full object-cover">
-                    <div class="flex-grow">
-                        <h4 class="font-bold text-lg">${p.name}</h4>
-                        <p class="text-sm text-yellow-300">${p.role}</p>
-                        <p class="text-xs text-gray-400 mt-1">אחראי: ${p.manager.name}</p>
-                        <div class="mt-2">${p.isActive ? '<span class="text-xs text-green-400 bg-green-900 px-2 py-1 rounded-full">פעיל</span>' : '<span class="text-xs text-red-400 bg-red-900 px-2 py-1 rounded-full">לא פעיל</span>'}</div>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <button class="view-profile-btn" data-id="${p.id}">👁️</button>
-                        <button class="edit-btn" data-type="profile" data-id="${p.id}">✏️</button>
-                        <button class="delete-btn" data-type="profile" data-id="${p.id}">🗑️</button>
-                    </div>
-                </div>`).join('');
+            document.getElementById('profiles-list').innerHTML = profiles.length === 0 ? '<p class="text-gray-400 text-center col-span-full">לא נמצאו פרופילים.</p>' : profiles.map(p => `
+                <div class="item-card bg-gray-800 p-4 rounded-lg flex items-start gap-4" data-type="profile" data-id="${p.id}"><img src="${p.imageUrl || 'https://placehold.co/64x64'}" alt="Profile" class="w-16 h-16 rounded-full object-cover"><div class="flex-grow"><h4 class="font-bold text-lg">${p.name}</h4><p class="text-sm" style="color:var(--primary-gold);">${p.role}</p><p class="text-xs text-gray-400 mt-1">אחראי: ${p.manager.name}</p><div class="mt-2">${p.isActive ? '<span class="text-xs text-green-400 bg-green-900 px-2 py-1 rounded-full">פעיל</span>' : '<span class="text-xs text-red-400 bg-red-900 px-2 py-1 rounded-full">לא פעיל</span>'}</div></div><div class="flex flex-col gap-2"><button class="edit-btn" data-type="profile" data-id="${p.id}">✏️</button><button class="delete-btn" data-type="profile" data-id="${p.id}">🗑️</button></div></div>`).join('');
         };
-        
-        // --- EVENT DELEGATION for EDIT/DELETE ---
-        document.body.addEventListener('click', async (e) => {
-            const target = e.target.closest('.edit-btn, .delete-btn, .view-profile-btn');
-            if (!target) return;
-            
-            const id = target.dataset.id;
-            const type = target.dataset.type;
+        const showDetails = (type, data) => {
+            const titleEl = document.getElementById('details-modal-title'), contentEl = document.getElementById('details-modal-content'), qrEl = document.getElementById('details-modal-qr-code');
+            contentEl.innerHTML = ''; qrEl.innerHTML = ''; let contentHTML = '';
+            if (type === 'site') {
+                titleEl.textContent = 'פרטי אתר'; contentHTML = `<p><strong>שם:</strong> ${data.name}</p><p><strong>פרטים:</strong> ${data.details || 'אין'}</p>`;
+            } else {
+                const sitesHtml = data.sites.map(s => `<span class="bg-gray-700 text-gray-300 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">${s.name}</span>`).join(' ');
+                contentHTML = `<div class="flex items-center gap-4 mb-4"><img src="${data.imageUrl}" class="w-20 h-20 rounded-full object-cover border-2" style="border-color: var(--primary-gold);"><h4 class="text-xl font-bold">${data.name}</h4></div><p><strong>ת.ז.:</strong> ${data.idNumber}</p><p><strong>טלפון:</strong> ${data.phone}</p>`;
+                if (type === 'manager') { titleEl.textContent = 'פרטי מנהל'; contentHTML += `<p><strong>אחריות:</strong> ${data.responsibility}</p>`; } 
+                else { titleEl.textContent = 'פרטי פרופיל'; contentHTML += `<p><strong>תפקיד:</strong> ${data.role}</p><p><strong>מנהל:</strong> ${data.manager.name}</p><p><strong>סטטוס:</strong> ${data.isActive ? '<span class="text-green-400">פעיל</span>' : '<span class="text-red-400">לא פעיל</span>'}</p>`; }
+                contentHTML += `<div class="mt-2"><strong class="block mb-1">אתרים:</strong> ${sitesHtml}</div>`;
+                new QRCode(qrEl, { text: data.id, width: 128, height: 128, colorDark: "#E0E0E0", colorLight: "#1E1E1E" });
+            }
+            contentEl.innerHTML = contentHTML; openModal(detailsModal);
+        };
 
-            if (target.classList.contains('edit-btn')) {
+        // EVENT DELEGATION
+        document.body.addEventListener('click', async (e) => {
+            const button = e.target.closest('.edit-btn, .delete-btn');
+            if (button) {
+                e.stopPropagation();
+                const id = button.dataset.id; const type = button.dataset.type;
+                if (button.classList.contains('edit-btn')) {
+                    const docSnap = await getDoc(doc(db, `${type}s`, id));
+                    if (!docSnap.exists()) return;
+                    const data = { id: docSnap.id, ...docSnap.data() };
+                    if (type === 'site') openSiteModal(data); else if (type === 'manager') openManagerModal(data); else if (type === 'profile') openProfileModal(data);
+                } else if (button.classList.contains('delete-btn')) { if (confirm(`האם למחוק את הפריט?`)) await deleteDoc(doc(db, `${type}s`, id)); }
+                return;
+            }
+            const card = e.target.closest('.item-card');
+            if (card) {
+                const id = card.dataset.id; const type = card.dataset.type;
                 const docSnap = await getDoc(doc(db, `${type}s`, id));
-                if (!docSnap.exists()) return;
-                const data = { id: docSnap.id, ...docSnap.data() };
-                if (type === 'site') openSiteModal(data);
-                else if (type === 'manager') openManagerModal(data);
-                else if (type === 'profile') openProfileModal(data);
-            }
-            else if (target.classList.contains('delete-btn')) {
-                 if(confirm(`האם למחוק ${type === 'site' ? 'אתר' : type === 'manager' ? 'מנהל' : 'פרופיל'} זה?`)){
-                    await deleteDoc(doc(db, `${type}s`, id));
-                }
-            }
-            else if (target.classList.contains('view-profile-btn')) {
-                const docSnap = await getDoc(doc(db, "profiles", id));
-                if (docSnap.exists()) showProfileDetails({ id: docSnap.id, ...docSnap.data() });
+                if (docSnap.exists()) showDetails(type, { id, ...docSnap.data() });
             }
         });
-
-        // --- SCANNER & DETAILS ---
-        const showProfileDetails = (profile) => {
-            const sitesHtml = profile.sites.map(s => `<span class="bg-yellow-800 text-yellow-200 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">${s.name}</span>`).join(' ');
-            document.getElementById('profile-details-content').innerHTML = `
-                <img src="${profile.imageUrl}" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-yellow-500">
-                <h3 class="text-2xl font-bold">${profile.name}</h3>
-                <p class="text-yellow-300">${profile.role}</p>
-                <p class="mt-2">ת.ז.: ${profile.idNumber} | טלפון: ${profile.phone}</p>
-                <p class="text-gray-400 mt-1">מנהל אחראי: ${profile.manager.name}</p>
-                <div class="my-4">${profile.isActive ? '<p class="text-green-400">סטטוס: פעיל</p>' : '<p class="text-red-400">סטטוס: לא פעיל</p>'}</div>
-                <div><h4 class="font-semibold mb-2">גישה לאתרים:</h4><div class="flex flex-wrap justify-center gap-2">${sitesHtml}</div></div>`;
-            
-            const qrContainer = document.getElementById('profile-qr-code');
-            qrContainer.innerHTML = '';
-            new QRCode(qrContainer, { text: profile.id, width: 128, height: 128, colorDark : "#E0E0E0", colorLight : "#1E1E1E" });
-            openModal(document.getElementById('profile-details-modal'));
-        };
-        document.getElementById('close-profile-details-modal').addEventListener('click', () => closeModal(document.getElementById('profile-details-modal')));
+        
+        // SCANNER
         document.getElementById('scan-qr-btn').addEventListener('click', () => {
             openModal(document.getElementById('scanner-modal'));
             html5QrcodeScanner = new Html5Qrcode("reader");
             html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (decodedText) => {
-                await html5QrcodeScanner.stop();
-                closeModal(document.getElementById('scanner-modal'));
-                showLoading();
-                const docSnap = await getDoc(doc(db, "profiles", decodedText));
-                if (docSnap.exists()) showProfileDetails({id: docSnap.id, ...docSnap.data()});
-                else alert("פרופיל לא נמצא.");
+                await html5QrcodeScanner.stop(); closeModal(document.getElementById('scanner-modal')); showLoading();
+                const profileSnap = await getDoc(doc(db, "profiles", decodedText));
+                if (profileSnap.exists()) showDetails('profile', {id: profileSnap.id, ...profileSnap.data()});
+                else {
+                    const managerSnap = await getDoc(doc(db, "managers", decodedText));
+                    if(managerSnap.exists()) showDetails('manager', {id: managerSnap.id, ...managerSnap.data()});
+                    else alert("לא נמצא פרופיל או מנהל תואם.");
+                }
                 hideLoading();
             }, (error) => {});
         });
-        document.getElementById('cancel-scanner-modal').addEventListener('click', () => {
-             if (html5QrcodeScanner) html5QrcodeScanner.stop();
-             closeModal(document.getElementById('scanner-modal'));
-        });
+        document.getElementById('cancel-scanner-modal').addEventListener('click', () => { if (html5QrcodeScanner && html5QrcodeScanner.isScanning) html5QrcodeScanner.stop(); closeModal(document.getElementById('scanner-modal')); });
 
-        // --- REALTIME LISTENERS ---
+        // REALTIME LISTENERS
         onSnapshot(collection(db, "sites"), (snapshot) => renderSites(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
         onSnapshot(collection(db, "managers"), (snapshot) => renderManagers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
         onSnapshot(collection(db, "profiles"), (snapshot) => renderProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
 
         window.onload = () => hideLoading();
-
     </script>
 </body>
 </html>

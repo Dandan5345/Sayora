@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayora Festival - QR Scanner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode@2.0.9/dist/html5-qrcode.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-surface: #1E1E1E;
+            --primary-gold: #c09a3e;
+            --primary-gold-glow: rgba(192, 154, 62, 0.4);
+            --text-light: #E0E0E0;
+            --border-color: #444444;
+        }
+        body {
+            font-family: 'Assistant', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            overflow: hidden;
+        }
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .main-content {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1s ease-out forwards;
+        }
+        .scan-button {
+            box-shadow: 0 0 15px var(--primary-gold-glow), 0 0 25px var(--primary-gold-glow);
+            animation: pulse 2.5s infinite;
+        }
+        .modal-content {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: scaleIn 0.3s ease-out;
+        }
+        .profile-card-image {
+             border: 3px solid var(--primary-gold);
+             box-shadow: 0 0 10px var(--primary-gold-glow);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px var(--primary-gold-glow), 0 0 25px var(--primary-gold-glow); }
+            50% { box-shadow: 0 0 25px var(--primary-gold-glow), 0 0 40px var(--primary-gold-glow); }
+            100% { box-shadow: 0 0 15px var(--primary-gold-glow), 0 0 25px var(--primary-gold-glow); }
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="min-h-screen flex flex-col items-center justify-center text-center p-4">
+        <main class="main-content" style="animation-delay: 0.2s;">
+            <img src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Festival Logo" class="w-32 h-32 md:w-40 md:h-40 mx-auto rounded-full shadow-lg mb-6" style="box-shadow: 0 0 20px var(--primary-gold-glow);">
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-wider">SAYORA<span style="color: var(--primary-gold);"> FESTIVAL</span></h1>
+            <p class="text-lg md:text-xl text-gray-300 mt-2 mb-10">מערכת בקרת כניסות</p>
+            <button id="scan-qr-btn" class="scan-button bg-primary-gold text-bg-dark font-bold text-xl py-4 px-10 rounded-full transition-transform duration-300 hover:scale-105">
+                סרוק ברקוד
+            </button>
+        </main>
+    </div>
+
+    <!-- Scanner Modal -->
+    <div id="scanner-modal" class="fixed inset-0 bg-black bg-opacity-80 items-center justify-center z-40 hidden p-4">
+        <div class="modal-content p-6 rounded-lg w-full max-w-lg">
+            <h3 class="text-2xl font-bold mb-4 text-center">מקם את הברקוד מול המצלמה</h3>
+            <div id="reader" class="w-full bg-gray-800 rounded-lg overflow-hidden border-2" style="border-color: var(--primary-gold)"></div>
+            <div class="text-center mt-4">
+                <button id="cancel-scanner-modal" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-full">ביטול</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profile Details Modal -->
+    <div id="details-modal" class="fixed inset-0 bg-black bg-opacity-80 items-center justify-center z-50 hidden p-4">
+        <div id="profile-card-content" class="modal-content p-8 rounded-xl w-full max-w-md text-center">
+            <!-- Content will be injected by JavaScript -->
+        </div>
+    </div>
+    
+    <!-- Loading/Error Overlay -->
+    <div id="feedback-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex-col gap-4 justify-center items-center z-50 hidden">
+        <div id="feedback-spinner" class="animate-spin rounded-full h-24 w-24 border-t-2 border-b-2" style="border-color: var(--primary-gold);"></div>
+        <p id="feedback-text" class="text-lg mt-4"></p>
+    </div>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        
+        const firebaseConfig = { apiKey: "AIzaSyAUdX5OhKdNVvXTwVMF6zul6zGhldqx_s0", authDomain: "sayora-786c4.firebaseapp.com", projectId: "sayora-786c4", storageBucket: "sayora-786c4.firebasestorage.app", messagingSenderId: "353491525675", appId: "1:353491525675:web:0c59e5183e112e9bf84a6e" };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const scanBtn = document.getElementById('scan-qr-btn');
+        const scannerModal = document.getElementById('scanner-modal');
+        const cancelScannerBtn = document.getElementById('cancel-scanner-modal');
+        const detailsModal = document.getElementById('details-modal');
+        const profileCardContent = document.getElementById('profile-card-content');
+        const feedbackOverlay = document.getElementById('feedback-overlay');
+        const feedbackText = document.getElementById('feedback-text');
+        const feedbackSpinner = document.getElementById('feedback-spinner');
+        let html5QrcodeScanner;
+
+        const showFeedback = (text, showSpinner = true) => {
+            feedbackText.textContent = text;
+            feedbackSpinner.style.display = showSpinner ? 'block' : 'none';
+            feedbackOverlay.style.display = 'flex';
+        };
+        const hideFeedback = () => {
+            feedbackOverlay.style.display = 'none';
+        };
+
+        scanBtn.addEventListener('click', () => {
+            scannerModal.style.display = 'flex';
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess,
+                onScanFailure
+            ).catch(err => console.error("Scanner failed to start.", err));
+        });
+
+        const stopScanner = () => {
+            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+                html5QrcodeScanner.stop().catch(err => console.error("Failed to stop scanner.", err));
+            }
+            scannerModal.style.display = 'none';
+        };
+
+        cancelScannerBtn.addEventListener('click', stopScanner);
+
+        const onScanSuccess = async (decodedText, decodedResult) => {
+            stopScanner();
+            showFeedback('מאמת נתונים...');
+            
+            try {
+                let docSnap = await getDoc(doc(db, "profiles", decodedText));
+                let type = 'profile';
+                if (!docSnap.exists()) {
+                    docSnap = await getDoc(doc(db, "managers", decodedText));
+                    type = 'manager';
+                }
+
+                if (docSnap.exists()) {
+                    displayProfileDetails(docSnap.data(), type);
+                    detailsModal.style.display = 'flex';
+                } else {
+                    showFeedback('הברקוד אינו תקין', false);
+                    setTimeout(hideFeedback, 2500);
+                }
+            } catch (error) {
+                console.error("Error fetching document:", error);
+                showFeedback('שגיאה בגישה לשרת', false);
+                setTimeout(hideFeedback, 2500);
+            } finally {
+                 if(docSnap && docSnap.exists()) hideFeedback();
+            }
+        };
+
+        const onScanFailure = (error) => { /* console.warn(`Code scan error = ${error}`); */ };
+
+        const displayProfileDetails = (data, type) => {
+            const statusBadge = data.isActive 
+                ? `<span class="px-3 py-1 text-sm font-semibold text-green-200 bg-green-800 rounded-full">פעיל</span>` 
+                : `<span class="px-3 py-1 text-sm font-semibold text-red-200 bg-red-800 rounded-full">לא פעיל</span>`;
+
+            const sitesHtml = data.sites.map(site => `<span class="bg-gray-700 text-xs font-medium mr-2 mb-2 px-2.5 py-1 rounded">${site.name}</span>`).join('');
+
+            let specificInfo = '';
+            if (type === 'profile') {
+                specificInfo = `
+                    <p class="text-lg" style="color: var(--primary-gold);">${data.role}</p>
+                    <p class="text-sm text-gray-400 mt-1">מנהל אחראי: ${data.manager.name}</p>
+                `;
+            } else { // manager
+                specificInfo = `<p class="text-lg" style="color: var(--primary-gold);">מנהל</p>`;
+            }
+
+            profileCardContent.innerHTML = `
+                <img src="${data.imageUrl}" alt="Profile Picture" class="w-32 h-32 rounded-full mx-auto object-cover profile-card-image mb-4">
+                <h2 class="text-3xl font-bold">${data.name}</h2>
+                ${specificInfo}
+                <div class="my-4">${type === 'profile' ? statusBadge : ''}</div>
+                <div class="text-left space-y-3 my-6 border-t border-b py-4" style="border-color: var(--border-color)">
+                    <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-3" style="color: var(--primary-gold);" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 002 0V3a1 1 0 00-1-1zM4 4a1 1 0 011-1h1.586l.707-.707a1 1 0 011.414 0L10 3.586l1.293-1.293a1 1 0 011.414 0L13.414 3H15a1 1 0 110 2h-1v1.5a1 1 0 11-2 0V5h-1a1 1 0 110-2h.172l.707-.707-1.414-1.414-1-1-1.414 1.414-.707.707H5a1 1 0 01-1-1zm12 5a1 1 0 01-1 1h-1v1.5a1 1 0 11-2 0V10h-1a1 1 0 110-2h.172l.707-.707-1.414-1.414-1-1-1.414 1.414-.707.707H9a1 1 0 110-2h1.586l.707-.707a1 1 0 011.414 0L14 7.586l1.293-1.293a1 1 0 011.414 0L17.414 7H19a1 1 0 110 2h-1.586l-.707.707a1 1 0 01-1.414 0L14 8.414 12.707 9.707a1 1 0 01-1.414 0L10.586 9H10a1 1 0 010-2h.586l.707.707 1.414-1.414 1-1 1.414 1.414.707.707H16a1 1 0 011 1z" clip-rule="evenodd" /></svg><strong>ת.ז.:</strong> <span class="mr-2">${data.idNumber}</span></p>
+                    <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-3" style="color: var(--primary-gold);" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg><strong>טלפון:</strong> <span class="mr-2">${data.phone}</span></p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold text-left mb-2">אזורי גישה מורשים:</h4>
+                    <div class="flex flex-wrap justify-start">${sitesHtml}</div>
+                </div>
+                <button id="close-details-modal" class="mt-8 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-8 rounded-full">סגור</button>
+            `;
+            document.getElementById('close-details-modal').addEventListener('click', () => {
+                detailsModal.style.display = 'none';
+            });
+        };
+
+        // --- Particle background animation ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particlesArray;
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; this.color = color;
+            }
+            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); }
+            update() {
+                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+                this.x += this.directionX; this.y += this.directionY;
+                this.draw();
+            }
+        }
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 0.5;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * .4) - .2;
+                let directionY = (Math.random() * .4) - .2;
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, 'rgba(192, 154, 62, 0.4)'));
+            }
+        }
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0,0,innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update();
+        }
+        initParticles();
+        animateParticles();
+        window.addEventListener('resize', () => {
+            canvas.width = innerWidth; canvas.height = innerHeight;
+            initParticles();
+        });
+    </script>
+</body>
+</html>
+

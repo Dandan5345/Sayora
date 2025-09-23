@@ -82,7 +82,6 @@
         </main>
     </div>
 
-    <!-- Scanner Modal -->
     <div id="scanner-modal" class="fixed inset-0 bg-black bg-opacity-80 items-center justify-center z-40 hidden p-4">
         <div class="modal-content p-6 rounded-lg w-full max-w-lg">
             <h3 class="text-2xl font-bold mb-4 text-center">מקם את הברקוד מול המצלמה</h3>
@@ -93,14 +92,11 @@
         </div>
     </div>
     
-    <!-- Profile Details Modal -->
     <div id="details-modal" class="fixed inset-0 bg-black bg-opacity-80 items-center justify-center z-50 hidden p-4">
         <div id="profile-card-content" class="modal-content p-8 rounded-xl w-full max-w-md text-center">
-            <!-- Content will be injected by JavaScript -->
-        </div>
+            </div>
     </div>
     
-    <!-- Loading/Error Overlay -->
     <div id="feedback-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex-col gap-4 justify-center items-center z-50 hidden">
         <div id="feedback-spinner" class="animate-spin rounded-full h-24 w-24 border-t-2 border-b-2" style="border-color: var(--primary-gold);"></div>
         <p id="feedback-text" class="text-lg mt-4"></p>
@@ -142,7 +138,7 @@
                 { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 onScanSuccess,
-                onScanFailure
+                (error) => { /* Ignore scan failure */ }
             ).catch(err => console.error("Scanner failed to start.", err));
         });
 
@@ -170,6 +166,8 @@
                 if (docSnap.exists()) {
                     displayProfileDetails(docSnap.data(), type);
                     detailsModal.style.display = 'flex';
+                    // FIX: Hide feedback overlay on success
+                    hideFeedback();
                 } else {
                     showFeedback('הברקוד אינו תקין', false);
                     setTimeout(hideFeedback, 2500);
@@ -178,12 +176,8 @@
                 console.error("Error fetching document:", error);
                 showFeedback('שגיאה בגישה לשרת', false);
                 setTimeout(hideFeedback, 2500);
-            } finally {
-                 if(docSnap && docSnap.exists()) hideFeedback();
             }
         };
-
-        const onScanFailure = (error) => { /* console.warn(`Code scan error = ${error}`); */ };
 
         const displayProfileDetails = (data, type) => {
             const statusBadge = data.isActive 
@@ -230,16 +224,9 @@
         let particlesArray;
 
         class Particle {
-            constructor(x, y, directionX, directionY, size, color) {
-                this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; this.color = color;
-            }
+            constructor(x, y, directionX, directionY, size, color) { this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; this.color = color; }
             draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); }
-            update() {
-                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
-                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
-                this.x += this.directionX; this.y += this.directionY;
-                this.draw();
-            }
+            update() { if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX; if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY; this.x += this.directionX; this.y += this.directionY; this.draw(); }
         }
         function initParticles() {
             particlesArray = [];
@@ -250,21 +237,13 @@
                 let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
                 let directionX = (Math.random() * .4) - .2;
                 let directionY = (Math.random() * .4) - .2;
-                particlesArray.push(new Particle(x, y, directionX, directionY, size, 'rgba(192, 154, 62, 0.4)'));
+                particlesArray.push(new Particle(x, y, directionX, directionY, 'rgba(192, 154, 62, 0.4)'));
             }
         }
-        function animateParticles() {
-            requestAnimationFrame(animateParticles);
-            ctx.clearRect(0,0,innerWidth, innerHeight);
-            for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update();
-        }
+        function animateParticles() { requestAnimationFrame(animateParticles); ctx.clearRect(0,0,innerWidth, innerHeight); for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update(); }
         initParticles();
         animateParticles();
-        window.addEventListener('resize', () => {
-            canvas.width = innerWidth; canvas.height = innerHeight;
-            initParticles();
-        });
+        window.addEventListener('resize', () => { canvas.width = innerWidth; canvas.height = innerHeight; initParticles(); });
     </script>
 </body>
 </html>
-

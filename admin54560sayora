@@ -98,6 +98,7 @@
         
         let html5QrcodeScanner;
 
+
         const showLoading = (text = 'טוען...') => { document.getElementById('loading-overlay').style.display = 'flex'; document.getElementById('loading-text').textContent = text; }
         const hideLoading = () => document.getElementById('loading-overlay').style.display = 'none';
         const openModal = (modal) => modal.style.display = 'flex';

@@ -19,7 +19,7 @@
         }
         body { font-family: 'Assistant', sans-serif; background-color: var(--bg-dark); color: var(--text-light); }
         .modal-backdrop { background-color: rgba(0,0,0,0.8); }
-        .modal-content { background-color: var(--bg-surface); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
+        .modal-content { background-color: var(--bg-surface); border: 1px solid var(--border-color); max-height: 90vh; overflow-y: auto; }
         .form-input, .form-select, .form-textarea { background-color: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-light); border-radius: 0.5rem; transition: border-color 0.3s, box-shadow 0.3s; }
         .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary-gold); box-shadow: 0 0 0 2px rgba(192, 154, 62, 0.4); }
         .btn { border-radius: 0.5rem; font-weight: bold; padding: 0.6rem 1.2rem; transition: all 0.3s; cursor: pointer; }
@@ -43,6 +43,24 @@
         .image-preview { width: 64px; height: 64px; object-fit: cover; border-radius: 0.375rem; }
         .card-btn { background: none; border: none; padding: 4px; border-radius: 50%; transition: background-color 0.2s; }
         .card-btn:hover { background-color: rgba(255,255,255,0.1); }
+        
+        /* Print styles for the badge */
+        @media print {
+            body * { visibility: hidden; }
+            #badge-design-area-wrapper, #badge-design-area-wrapper * { visibility: visible; }
+            #badge-design-area-wrapper {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0;
+                padding: 0;
+            }
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -55,13 +73,11 @@
     <!-- Auth Modal -->
     <div id="auth-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden p-4">
         <div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-sm">
-            <!-- START: Added Branding to Login Modal -->
             <div class="flex flex-col items-center gap-3 mb-6">
                 <img src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Festival Logo" class="w-20 h-20 rounded-full shadow-lg" style="box-shadow: 0 0 10px var(--primary-gold);">
                 <h2 class="text-2xl font-bold text-white tracking-wider">SAYORA<span style="color: var(--primary-gold);"> FESTIVAL</span></h2>
                 <p class="text-gray-400">התחברות למערכת הניהול</p>
             </div>
-            <!-- END: Added Branding to Login Modal -->
             <form id="auth-form">
                 <div class="mb-4">
                     <label for="auth-email" class="block mb-2">אימייל</label>
@@ -151,7 +167,7 @@
                     <div class="flex items-center"><label class="block mr-4">סדרן</label><div class="relative inline-block w-12 mr-2 align-middle select-none"><input type="checkbox" name="toggle-steward" id="profile-steward" class="toggle-checkbox absolute block rounded-full bg-white border-4 appearance-none cursor-pointer"/><label for="profile-steward" class="toggle-label block overflow-hidden rounded-full bg-gray-600 cursor-pointer"></label></div></div>
                 </div>
             </div><div class="flex justify-end gap-4 mt-4"><button type="button" class="btn btn-secondary cancel-modal-btn">ביטול</button><button type="submit" id="save-profile-btn" class="btn btn-primary">שמור פרופיל</button></div></form></div></div>
-    <div id="details-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-md text-center"><h3 id="details-modal-title" class="text-2xl font-bold mb-4" style="color: var(--primary-gold);"></h3><div id="details-modal-content" class="text-left space-y-2"></div><div id="details-modal-qr-code" class="flex justify-center my-6"></div><div class="text-center mt-4"><button type="button" class="btn btn-secondary" id="close-details-modal">סגור</button></div></div></div>
+    <div id="details-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-md text-center"><h3 id="details-modal-title" class="text-2xl font-bold mb-4" style="color: var(--primary-gold);"></h3><div id="details-modal-content" class="text-left space-y-2"></div><div id="details-modal-qr-code" class="flex justify-center my-6"></div><div class="text-center mt-6 flex justify-center gap-4"><button type="button" class="btn btn-secondary" id="close-details-modal">סגור</button><button type="button" class="btn btn-primary hidden" id="show-badge-btn">הצג תג</button></div></div></div>
     <div id="scanner-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-40 hidden p-4"><div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-lg"><h3 class="text-2xl font-bold mb-6 text-center">סרוק קוד QR</h3><div id="reader" class="w-full bg-gray-800 rounded-lg overflow-hidden"></div><div class="text-center mt-4"><button type="button" class="btn btn-secondary" id="cancel-scanner-modal">סגור</button></div></div></div>
     <div id="qr-code-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden p-4">
         <div class="modal-content p-8 rounded-lg shadow-2xl w-full max-w-sm text-center">
@@ -163,6 +179,43 @@
             <div class="flex justify-center gap-4 mt-6">
                 <button type="button" class="btn btn-secondary cancel-modal-btn">סגור</button>
                 <button type="button" id="download-qr-btn" class="btn btn-primary">הורד כתמונה</button>
+            </div>
+        </div>
+    </div>
+    <!-- Badge Modal -->
+    <div id="badge-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-[60] hidden p-4">
+        <div class="modal-content p-6 rounded-lg shadow-2xl w-full max-w-md text-center">
+            <h3 class="text-2xl font-bold mb-4" style="color: var(--primary-gold);">תצוגה מקדימה של תג</h3>
+            <!-- The Badge itself -->
+            <div id="badge-design-area-wrapper" class="p-4 bg-gray-900 rounded-md">
+                <div id="badge-design-area" class="bg-black text-white rounded-2xl aspect-[5.4/8.6] w-full max-w-xs mx-auto shadow-2xl overflow-hidden flex flex-col font-sans border-2 border-gray-700 relative">
+                    <div class="absolute top-0 left-0 w-full h-2/5 opacity-50" style="background-image: linear-gradient(to bottom, var(--primary-gold), transparent);"></div>
+                    <div class="flex-shrink-0 p-4 text-center z-10">
+                        <img src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Logo" class="w-16 h-16 mx-auto rounded-full" style="filter: drop-shadow(0 0 8px var(--primary-gold));">
+                    </div>
+                    <div class="flex-grow flex flex-col items-center justify-center text-center px-4 z-10 -mt-8">
+                        <div class="w-32 h-32 rounded-full overflow-hidden border-4" style="border-color: var(--primary-gold);">
+                            <img id="badge-photo" src="https://placehold.co/128x128/1E1E1E/E0E0E0?text=Photo" alt="Profile Photo" class="w-full h-full object-cover">
+                        </div>
+                        <h3 id="badge-name" class="mt-3 text-2xl font-bold tracking-wider" style="color: var(--primary-gold);">שם העובד</h3>
+                        <p id="badge-role" class="text-base font-medium text-gray-300">תפקיד</p>
+                    </div>
+                    <div class="flex-shrink-0 p-3 bg-gray-900/70 z-10 flex items-center justify-between mt-auto">
+                        <div>
+                            <p class="text-xs text-gray-400">ID NUMBER</p>
+                            <p id="badge-id-number" class="text-sm font-semibold tracking-widest">123456789</p>
+                        </div>
+                        <div class="text-right">
+                           <p class="text-xs text-gray-400">PHONE</p>
+                           <p id="badge-phone" class="text-sm font-semibold tracking-widest">050-0000000</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-center gap-4 mt-6">
+                <button type="button" class="btn btn-secondary" id="close-badge-modal">סגור</button>
+                <button type="button" id="download-badge-btn" class="btn btn-primary">הורד</button>
+                <button type="button" id="print-badge-btn" class="btn btn-primary">הדפס</button>
             </div>
         </div>
     </div>
@@ -187,6 +240,7 @@
         const addUserModal = document.getElementById('add-user-modal');
         const userControls = document.getElementById('user-controls');
         const welcomeMessage = document.getElementById('welcome-message');
+        const badgeModal = document.getElementById('badge-modal');
 
         const showLoading = (text = 'טוען...') => { document.getElementById('loading-overlay').style.display = 'flex'; document.getElementById('loading-text').textContent = text; }
         const hideLoading = () => document.getElementById('loading-overlay').style.display = 'none';
@@ -196,14 +250,12 @@
         // Auth State Change Listener
         onAuthStateChanged(auth, user => {
             if (user) {
-                // User is signed in
                 mainContent.style.display = 'block';
                 userControls.style.display = 'flex';
                 welcomeMessage.textContent = `ברוך הבא, ${user.displayName || user.email}`;
                 closeModal(authModal);
                 hideLoading();
             } else {
-                // User is signed out
                 mainContent.style.display = 'none';
                 userControls.style.display = 'none';
                 openModal(authModal);
@@ -221,7 +273,6 @@
             showLoading('מתחבר...');
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged will handle the UI changes
             } catch (error) {
                 console.error("Login failed:", error);
                 errorEl.textContent = 'שגיאה בהתחברות. בדוק אימייל וסיסמה.';
@@ -233,17 +284,14 @@
         document.getElementById('logout-btn').addEventListener('click', async () => {
             showLoading('מתנתק...');
             await signOut(auth);
-            // onAuthStateChanged will handle UI changes
         });
         
-        // Add User Button
+        // Add User Button & Form
         document.getElementById('add-user-btn').addEventListener('click', () => {
             document.getElementById('add-user-form').reset();
             document.getElementById('add-user-error').textContent = '';
             openModal(addUserModal);
         });
-        
-        // Add User Form
         document.getElementById('add-user-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const fullName = document.getElementById('new-user-name').value;
@@ -251,14 +299,11 @@
             const password = document.getElementById('new-user-password').value;
             const errorEl = document.getElementById('add-user-error');
             errorEl.textContent = '';
-            
-            // Validate password with regex
             const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
             if (!passwordRegex.test(password)) {
                 errorEl.textContent = 'הסיסמה לא עומדת בדרישות.';
                 return;
             }
-
             showLoading('יוצר משתמש...');
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -267,21 +312,16 @@
                 closeModal(addUserModal);
             } catch (error) {
                 console.error("Failed to create user:", error);
-                if (error.code === 'auth/email-already-in-use') {
-                    errorEl.textContent = 'האימייל הזה כבר קיים במערכת.';
-                } else {
-                    errorEl.textContent = 'שגיאה ביצירת המשתמש.';
-                }
+                errorEl.textContent = error.code === 'auth/email-already-in-use' ? 'האימייל הזה כבר קיים במערכת.' : 'שגיאה ביצירת המשתמש.';
             } finally {
                 hideLoading();
             }
         });
 
-
         document.querySelectorAll('.cancel-modal-btn').forEach(btn => btn.addEventListener('click', () => btn.closest('.modal-backdrop').style.display = 'none'));
         document.getElementById('close-details-modal').addEventListener('click', () => closeModal(document.getElementById('details-modal')));
         
-        // ... (Image Upload and Form Handling Logic - Unchanged)
+        // Image Upload Logic
         const uploadImageWithProgress = (file, progressElements) => {
             return new Promise((resolve, reject) => {
                 const { container, bar, status } = progressElements;
@@ -331,6 +371,8 @@
         };
         document.getElementById('profile-image-input').addEventListener('change', (e) => handleImageSelection(e, 'profile'));
         document.getElementById('manager-image-input').addEventListener('change', (e) => handleImageSelection(e, 'manager'));
+        
+        // Generic Form Setup
         const setupForm = (form, modal, openBtn, collectionName, getFormData, openModalFn) => {
             openBtn.addEventListener('click', () => openModalFn());
             form.addEventListener('submit', async (e) => {
@@ -353,20 +395,11 @@
             if(site) { document.getElementById('site-name').value = site.name; document.getElementById('site-details').value = site.details; }
             openModal(document.getElementById('site-modal'));
         };
-        const siteForm = document.getElementById('site-form');
-        document.getElementById('add-site-btn').addEventListener('click', () => openSiteModal());
-        siteForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const saveBtn = siteForm.querySelector('button[type="submit"]');
-            saveBtn.disabled = true; showLoading('שומר אתר...');
-            try {
-                const data = { name: document.getElementById('site-name').value, details: document.getElementById('site-details').value };
-                const id = document.getElementById('site-id').value;
-                if (id) await updateDoc(doc(db, 'sites', id), data); else await addDoc(collection(db, 'sites'), data);
-                closeModal(document.getElementById('site-modal'));
-            } catch (err) { alert('שגיאה בשמירת האתר.'); console.error(err); }
-            finally { hideLoading(); saveBtn.disabled = false; }
-        });
+        setupForm(document.getElementById('site-form'), document.getElementById('site-modal'), document.getElementById('add-site-btn'), 'sites', () => ({
+            data: { name: document.getElementById('site-name').value, details: document.getElementById('site-details').value },
+            id: document.getElementById('site-id').value
+        }), () => openSiteModal());
+
         const resetImageUploader = (formType) => {
             document.getElementById(`${formType}-image-preview`).src = 'https://placehold.co/64x64/2a2a2a/444444?text=בחר';
             document.getElementById(`${formType}-image-filename`).textContent = 'יש לבחור תמונה';
@@ -391,102 +424,75 @@
         }, () => openManagerModal());
         
         const openProfileModal = (profile = null) => { 
-             const form = document.getElementById('profile-form'); form.reset(); resetImageUploader('profile');
+            const form = document.getElementById('profile-form'); form.reset(); resetImageUploader('profile');
             const saveBtn = document.getElementById('save-profile-btn'); saveBtn.disabled = false; saveBtn.textContent = "שמור פרופיל";
             document.getElementById('profile-id').value = profile ? profile.id : '';
             document.getElementById('profile-modal-title').textContent = profile ? 'ערוך פרופיל' : 'הוסף פרופיל חדש';
             document.getElementById('profile-active').checked = true;
             document.getElementById('profile-steward').checked = false;
             if (profile) {
-                 document.getElementById('profile-name').value = profile.name;
-                 document.getElementById('profile-phone').value = profile.phone;
-                 document.getElementById('profile-id-number').value = profile.idNumber;
-                 document.getElementById('profile-role').value = profile.role;
-                 document.getElementById('profile-active').checked = profile.isActive;
-                 document.getElementById('profile-steward').checked = profile.isSteward || false;
-                 document.getElementById('profile-image-url').value = profile.imageUrl || '';
-                 if(profile.imageUrl) {
-                    document.getElementById('profile-image-preview').src = profile.imageUrl;
-                    document.getElementById('profile-image-filename').textContent = 'תמונה קיימת';
-                    document.getElementById('profile-image-status').innerHTML = `<a href="${profile.imageUrl}" target="_blank" style="color: var(--primary-gold);">הצג תמונה</a>`;
-                 }
+                 document.getElementById('profile-name').value = profile.name; document.getElementById('profile-phone').value = profile.phone; document.getElementById('profile-id-number').value = profile.idNumber; document.getElementById('profile-role').value = profile.role;
+                 document.getElementById('profile-active').checked = profile.isActive; document.getElementById('profile-steward').checked = profile.isSteward || false; document.getElementById('profile-image-url').value = profile.imageUrl || '';
+                 if(profile.imageUrl) { document.getElementById('profile-image-preview').src = profile.imageUrl; document.getElementById('profile-image-filename').textContent = 'תמונה קיימת'; document.getElementById('profile-image-status').innerHTML = `<a href="${profile.imageUrl}" target="_blank" style="color: var(--primary-gold);">הצג תמונה</a>`; }
                  document.getElementById('profile-manager').value = profile.manager.id;
-                 const siteIds = profile.sites.map(s => s.id);
-                 Array.from(document.getElementById('profile-sites').options).forEach(opt => opt.selected = siteIds.includes(opt.value));
+                 const siteIds = profile.sites.map(s => s.id); Array.from(document.getElementById('profile-sites').options).forEach(opt => opt.selected = siteIds.includes(opt.value));
             }
             openModal(document.getElementById('profile-modal'));
         };
-
         setupForm(document.getElementById('profile-form'), document.getElementById('profile-modal'), document.getElementById('add-profile-btn'), 'profiles', () => {
-            const managerSelect = document.getElementById('profile-manager');
-            const manager = { id: managerSelect.value, name: managerSelect.options[managerSelect.selectedIndex].text };
-            const sites = Array.from(document.getElementById('profile-sites').selectedOptions).map(opt => ({ id: opt.value, name: opt.textContent }));
-            const data = {
-                name: document.getElementById('profile-name').value,
-                phone: document.getElementById('profile-phone').value,
-                idNumber: document.getElementById('profile-id-number').value,
-                role: document.getElementById('profile-role').value,
-                isActive: document.getElementById('profile-active').checked,
-                isSteward: document.getElementById('profile-steward').checked,
-                manager,
-                sites,
-                imageUrl: document.getElementById('profile-image-url').value
-            };
+            const managerSelect = document.getElementById('profile-manager'); const manager = { id: managerSelect.value, name: managerSelect.options[managerSelect.selectedIndex].text }; const sites = Array.from(document.getElementById('profile-sites').selectedOptions).map(opt => ({ id: opt.value, name: opt.textContent }));
+            const data = { name: document.getElementById('profile-name').value, phone: document.getElementById('profile-phone').value, idNumber: document.getElementById('profile-id-number').value, role: document.getElementById('profile-role').value, isActive: document.getElementById('profile-active').checked, isSteward: document.getElementById('profile-steward').checked, manager, sites, imageUrl: document.getElementById('profile-image-url').value };
             return { data, id: document.getElementById('profile-id').value, needsImage: true };
         }, () => openProfileModal());
         
         document.getElementById('select-all-manager-sites-btn').addEventListener('click', () => { Array.from(document.getElementById('manager-sites').options).forEach(o => o.selected = true); });
         document.getElementById('select-all-profile-sites-btn').addEventListener('click', () => { Array.from(document.getElementById('profile-sites').options).forEach(o => o.selected = true); });
         
+        // Rendering Functions
         const renderSites = (sites) => {
             document.getElementById('sites-list').innerHTML = sites.length === 0 ? '<p class="text-gray-400">לא נמצאו אתרים.</p>' : sites.map(site => `<div class="item-card bg-gray-800 p-2 rounded-md flex justify-between items-center text-sm" data-type="site" data-id="${site.id}"><div><p class="font-semibold">${site.name}</p></div><div class="flex gap-2"><button class="card-btn edit-btn" data-type="site" data-id="${site.id}" title="ערוך">✏️</button><button class="card-btn delete-btn" data-type="site" data-id="${site.id}" title="מחק">🗑️</button></div></div>`).join('');
             const optionsHtml = sites.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            document.getElementById('manager-sites').innerHTML = optionsHtml;
-            document.getElementById('profile-sites').innerHTML = optionsHtml;
+            document.getElementById('manager-sites').innerHTML = optionsHtml; document.getElementById('profile-sites').innerHTML = optionsHtml;
         };
-        const renderManagers = (managers) => { document.getElementById('managers-list').innerHTML = managers.length === 0 ? '<p class="text-gray-400">לא נמצאו מנהלים.</p>' : managers.map(m => `<div class="item-card bg-gray-800 p-2 rounded-md flex justify-between items-center text-sm" data-type="manager" data-id="${m.id}"><div class="flex items-center gap-2"><img src="${m.imageUrl || 'https://placehold.co/32x32'}" class="w-8 h-8 rounded-full object-cover"><p>${m.name}</p></div><div class="flex gap-1"><button class="card-btn qr-btn" data-type="manager" data-id="${m.id}" title="הצג ברקוד"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16M12 4v16m8-8H4"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h2v2H4zm0 8h2v2H4zm8-8h2v2h-2zm0 8h2v2h-2zm8-8h2v2h-2zm0 8h2v2h-2zM4 4h2v2H4zm8 0h2v2h-2zm8 0h2v2h-2z"></path></svg></button><button class="card-btn edit-btn" data-type="manager" data-id="${m.id}" title="ערוך">✏️</button><button class="card-btn delete-btn" data-type="manager" data-id="${m.id}" title="מחק">🗑️</button></div></div>`).join(''); document.getElementById('profile-manager').innerHTML = `<option value="" disabled selected>בחר מנהל...</option>` + managers.map(m => `<option value="${m.id}">${m.name}</option>`).join(''); };
+        const renderManagers = (managers) => { document.getElementById('managers-list').innerHTML = managers.length === 0 ? '<p class="text-gray-400">לא נמצאו מנהלים.</p>' : managers.map(m => `<div class="item-card bg-gray-800 p-2 rounded-md flex justify-between items-center text-sm" data-type="manager" data-id="${m.id}"><div class="flex items-center gap-2"><img src="${m.imageUrl || 'https://placehold.co/32x32'}" class="w-8 h-8 rounded-full object-cover"><p>${m.name}</p></div><div class="flex gap-1"><button class="card-btn qr-btn" data-type="manager" data-id="${m.id}" title="הצג ברקוד"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16M12 4v16m8-8H4"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h2v2H4zm0 8h2v2H4zm8-8h2v2h-2zm0 8h2v2h-2zm8-8h2v2h-2zm0 8h2v2h-2zM4 4h2v2H4zm8 0h2v2h-2zm8 0h2v2h-2z"></path></svg></button><button class="card-btn edit-btn" data-type="manager" data-id="${m.id}" title="ערוך">✏️</button><button class="card-btn delete-btn" data-type="manager" data-id="${m.id}" title="מחק">🗑️</button></div></div>`).join(''); document.getElementById('profile-manager').innerHTML = `<option value="" disabled selected>בחר מנהל...</option>` + managers.map(m => `<option value="${m.id}">${m.name}</option>`).join(''); };
         const renderProfiles = (profiles) => {
             const profilesList = document.getElementById('profiles-list');
-            if (profiles.length === 0) {
-                profilesList.innerHTML = '<p class="text-gray-400 text-center col-span-full">לא נמצאו פרופילים.</p>';
-                return;
-            }
+            if (profiles.length === 0) { profilesList.innerHTML = '<p class="text-gray-400 text-center col-span-full">לא נמצאו פרופילים.</p>'; return; }
             profilesList.innerHTML = profiles.map(p => {
-                const activeBadge = p.isActive 
-                    ? '<span class="text-xs text-green-400 bg-green-900 px-2 py-1 rounded-full">פעיל</span>' 
-                    : '<span class="text-xs text-red-400 bg-red-900 px-2 py-1 rounded-full">לא פעיל</span>';
-                const stewardBadge = p.isSteward
-                    ? '<span class="text-xs text-blue-400 bg-blue-800 px-2 py-1 rounded-full">סדרן</span>'
-                    : '';
-                return `<div class="item-card bg-gray-800 p-4 rounded-lg flex items-start gap-4" data-type="profile" data-id="${p.id}">
-                    <img src="${p.imageUrl || 'https://placehold.co/64x64'}" alt="Profile" class="w-16 h-16 rounded-full object-cover">
-                    <div class="flex-grow">
-                        <h4 class="font-bold text-lg">${p.name}</h4>
-                        <p class="text-sm" style="color:var(--primary-gold);">${p.role}</p>
-                        <p class="text-xs text-gray-400 mt-1">אחראי: ${p.manager.name}</p>
-                        <div class="mt-2 flex gap-2">${activeBadge} ${stewardBadge}</div>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <button class="card-btn qr-btn" data-type="profile" data-id="${p.id}" title="הצג ברקוד"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4h2v2H4V4zm4 0h2v2H8V4zm4 0h2v2h-2V4zm-8 4h2v2H4V8zm4 0h2v2H8V8zm4 0h2v2h-2V8zM4 12h2v2H4v-2zm4 0h2v2H8v-2zm4 0h2v2h-2v-2z"></path></svg></button>
-                        <button class="card-btn edit-btn" data-type="profile" data-id="${p.id}" title="ערוך">✏️</button>
-                        <button class="card-btn delete-btn" data-type="profile" data-id="${p.id}" title="מחק">🗑️</button>
-                    </div>
-                </div>`;
+                const activeBadge = p.isActive ? '<span class="text-xs text-green-400 bg-green-900 px-2 py-1 rounded-full">פעיל</span>' : '<span class="text-xs text-red-400 bg-red-900 px-2 py-1 rounded-full">לא פעיל</span>';
+                const stewardBadge = p.isSteward ? '<span class="text-xs text-blue-400 bg-blue-800 px-2 py-1 rounded-full">סדרן</span>' : '';
+                return `<div class="item-card bg-gray-800 p-4 rounded-lg flex items-start gap-4" data-type="profile" data-id="${p.id}"><img src="${p.imageUrl || 'https://placehold.co/64x64'}" alt="Profile" class="w-16 h-16 rounded-full object-cover"><div class="flex-grow"><h4 class="font-bold text-lg">${p.name}</h4><p class="text-sm" style="color:var(--primary-gold);">${p.role}</p><p class="text-xs text-gray-400 mt-1">אחראי: ${p.manager.name}</p><div class="mt-2 flex gap-2">${activeBadge} ${stewardBadge}</div></div><div class="flex flex-col gap-1"><button class="card-btn qr-btn" data-type="profile" data-id="${p.id}" title="הצג ברקוד"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4h2v2H4V4zm4 0h2v2H8V4zm4 0h2v2h-2V4zm-8 4h2v2H4V8zm4 0h2v2H8V8zm4 0h2v2h-2V8zM4 12h2v2H4v-2zm4 0h2v2H8v-2zm4 0h2v2h-2v-2z"></path></svg></button><button class="card-btn edit-btn" data-type="profile" data-id="${p.id}" title="ערוך">✏️</button><button class="card-btn delete-btn" data-type="profile" data-id="${p.id}" title="מחק">🗑️</button></div></div>`;
             }).join('');
         };
+        
+        // Show Details Modal
         const showDetails = (type, data) => {
             const titleEl = document.getElementById('details-modal-title');
             const contentEl = document.getElementById('details-modal-content');
             const qrEl = document.getElementById('details-modal-qr-code');
-            contentEl.innerHTML = ''; qrEl.innerHTML = ''; let contentHTML = '';
-            if (type === 'site') { titleEl.textContent = 'פרטי אתר'; contentHTML = `<p><strong>שם:</strong> ${data.name}</p><p><strong>פרטים:</strong> ${data.details || 'אין'}</p>`; } 
-            else {
+            const showBadgeBtn = document.getElementById('show-badge-btn');
+            
+            contentEl.innerHTML = ''; qrEl.innerHTML = ''; showBadgeBtn.classList.add('hidden');
+            let contentHTML = '';
+
+            if (type === 'site') {
+                titleEl.textContent = 'פרטי אתר';
+                contentHTML = `<p><strong>שם:</strong> ${data.name}</p><p><strong>פרטים:</strong> ${data.details || 'אין'}</p>`;
+            } else {
+                showBadgeBtn.classList.remove('hidden');
+                const newBtn = showBadgeBtn.cloneNode(true);
+                showBadgeBtn.parentNode.replaceChild(newBtn, showBadgeBtn);
+                newBtn.addEventListener('click', () => showBadgeModal(data));
+                
                 const sitesHtml = data.sites.map(s => `<span class="bg-gray-700 text-gray-300 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">${s.name}</span>`).join(' ');
                 contentHTML = `<div class="flex items-center gap-4 mb-4"><img src="${data.imageUrl}" class="w-20 h-20 rounded-full object-cover border-2" style="border-color: var(--primary-gold);"><h4 class="text-xl font-bold">${data.name}</h4></div><p><strong>ת.ז.:</strong> ${data.idNumber}</p><p><strong>טלפון:</strong> ${data.phone}</p>`;
-                if (type === 'manager') { titleEl.textContent = 'פרטי מנהל'; contentHTML += `<p><strong>אחריות:</strong> ${data.responsibility}</p>`; } 
-                else { titleEl.textContent = 'פרטי פרופיל'; contentHTML += `<p><strong>תפקיד:</strong> ${data.role}</p><p><strong>מנהל:</strong> ${data.manager.name}</p><p><strong>סטטוס:</strong> ${data.isActive ? '<span class="text-green-400">פעיל</span>' : '<span class="text-red-400">לא פעיל</span>'} ${data.isSteward ? '<span class="text-blue-400">סדרן</span>' : ''}</p>`; }
-                contentHTML += `<div class="mt-2"><strong class="block mb-1">אתרים:</strong> ${sitesHtml}</div>`;
                 
+                if (type === 'manager') {
+                    titleEl.textContent = 'פרטי מנהל'; contentHTML += `<p><strong>אחריות:</strong> ${data.responsibility}</p>`;
+                } else {
+                    titleEl.textContent = 'פרטי פרופיל'; contentHTML += `<p><strong>תפקיד:</strong> ${data.role}</p><p><strong>מנהל:</strong> ${data.manager.name}</p><p><strong>סטטוס:</strong> ${data.isActive ? '<span class="text-green-400">פעיל</span>' : '<span class="text-red-400">לא פעיל</span>'} ${data.isSteward ? '<span class="text-blue-400">סדרן</span>' : ''}</p>`;
+                }
+                contentHTML += `<div class="mt-2"><strong class="block mb-1">אתרים:</strong> ${sitesHtml}</div>`;
                 const qrWrapper = document.createElement('div');
                 qrWrapper.className = 'bg-white p-2 rounded-md inline-block';
                 qrEl.appendChild(qrWrapper);
@@ -496,16 +502,14 @@
             openModal(document.getElementById('details-modal'));
         };
 
+        // QR Code Modals & Download
         const showQrCodeModal = (name, id) => {
-            const modal = document.getElementById('qr-code-modal');
-            const nameEl = document.getElementById('qr-modal-name');
+            document.getElementById('qr-modal-name').textContent = name;
             const codeEl = document.getElementById('qr-modal-code');
-            nameEl.textContent = name;
             codeEl.innerHTML = '';
             new QRCode(codeEl, { text: id, width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff" });
-            openModal(modal);
+            openModal(document.getElementById('qr-code-modal'));
         };
-        
         document.getElementById('download-qr-btn').addEventListener('click', async () => {
             const area = document.getElementById('printable-qr-area');
             const name = document.getElementById('qr-modal-name').textContent;
@@ -517,14 +521,41 @@
                 link.download = `QR_Code_${name.replace(/\s/g, '_')}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-            } catch (err) {
-                console.error("Failed to download QR code image:", err);
-                alert("שגיאה בהורדת התמונה. נסה שוב.");
-            } finally {
-                hideLoading();
-            }
+            } catch (err) { console.error("Failed to download QR code image:", err); alert("שגיאה בהורדת התמונה.");
+            } finally { hideLoading(); }
         });
 
+        // Badge Modal Functions
+        const showBadgeModal = (data) => {
+            document.getElementById('badge-photo').src = data.imageUrl || 'https://placehold.co/128x128/1E1E1E/E0E0E0?text=Photo';
+            document.getElementById('badge-name').textContent = data.name;
+            document.getElementById('badge-role').textContent = data.role || data.responsibility; // role for profile, responsibility for manager
+            document.getElementById('badge-id-number').textContent = data.idNumber;
+            document.getElementById('badge-phone').textContent = data.phone;
+            
+            // Pass the person's name to the download button
+            document.getElementById('download-badge-btn').dataset.name = data.name;
+
+            openModal(badgeModal);
+        };
+        document.getElementById('close-badge-modal').addEventListener('click', () => closeModal(badgeModal));
+        document.getElementById('print-badge-btn').addEventListener('click', () => window.print());
+        document.getElementById('download-badge-btn').addEventListener('click', async (e) => {
+            const area = document.getElementById('badge-design-area');
+            const name = e.currentTarget.dataset.name || 'badge';
+            showLoading('יוצר תמונה...');
+            try {
+                const { default: html2canvas } = await import('https://cdn.skypack.dev/html2canvas');
+                const canvas = await html2canvas(area, { backgroundColor: '#000000', scale: 4 }); // Higher scale for better quality
+                const link = document.createElement('a');
+                link.download = `Sayora_Badge_${name.replace(/\s/g, '_')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) { console.error("Failed to download badge image:", err); alert("שגיאה בהורדת התמונה.");
+            } finally { hideLoading(); }
+        });
+
+        // Click Event Delegation for Cards and Buttons
         document.body.addEventListener('click', async (e) => {
             const button = e.target.closest('.edit-btn, .delete-btn, .qr-btn');
             if (button) {
@@ -534,61 +565,47 @@
                 const docSnap = await getDoc(docRef);
                 if (!docSnap.exists()) return;
                 const data = { id: docSnap.id, ...docSnap.data() };
-                
-                if (button.classList.contains('edit-btn')) {
-                    if (type === 'site') openSiteModal(data); else if (type === 'manager') openManagerModal(data); else if (type === 'profile') openProfileModal(data);
-                } else if (button.classList.contains('delete-btn')) { 
-                    if (confirm(`האם למחוק את הפריט?`)) await deleteDoc(docRef);
-                } else if (button.classList.contains('qr-btn')) {
-                    showQrCodeModal(data.name, data.id);
-                }
+                if (button.classList.contains('edit-btn')) { if (type === 'site') openSiteModal(data); else if (type === 'manager') openManagerModal(data); else if (type === 'profile') openProfileModal(data); } 
+                else if (button.classList.contains('delete-btn')) { if (confirm(`האם למחוק את הפריט?`)) await deleteDoc(docRef); } 
+                else if (button.classList.contains('qr-btn')) { showQrCodeModal(data.name, data.id); }
                 return;
             }
             const card = e.target.closest('.item-card');
             if (card) { 
-                const id = card.dataset.id; 
-                const type = card.dataset.type; 
-                const docRef = doc(db, `${type}s`, id);
-                const docSnap = await getDoc(docRef); 
+                const id = card.dataset.id; const type = card.dataset.type; 
+                const docSnap = await getDoc(doc(db, `${type}s`, id)); 
                 if (docSnap.exists()) showDetails(type, { id, ...docSnap.data() }); 
             }
         });
         
+        // QR Code Scanner Logic
         document.getElementById('scan-qr-btn').addEventListener('click', () => {
-             openModal(document.getElementById('scanner-modal'));
+            openModal(document.getElementById('scanner-modal'));
             html5QrcodeScanner = new Html5Qrcode("reader");
             html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, async (decodedText) => {
                 await html5QrcodeScanner.stop(); 
                 closeModal(document.getElementById('scanner-modal')); 
                 showLoading();
                 try {
-                    const profileSnap = await getDoc(doc(db, "profiles", decodedText));
-                    if (profileSnap.exists()) {
-                        showDetails('profile', {id: profileSnap.id, ...profileSnap.data()});
-                    } else { 
-                        const managerSnap = await getDoc(doc(db, "managers", decodedText)); 
-                        if(managerSnap.exists()) {
-                            showDetails('manager', {id: managerSnap.id, ...managerSnap.data()});
-                        } else {
-                            alert("לא נמצא פרופיל או מנהל תואם."); 
-                        }
+                    let docSnap = await getDoc(doc(db, "profiles", decodedText));
+                    let type = 'profile';
+                    if (!docSnap.exists()) { 
+                        docSnap = await getDoc(doc(db, "managers", decodedText)); 
+                        type = 'manager';
                     }
-                } catch (err) {
-                    console.error("Error fetching doc by QR code:", err);
-                    alert("שגיאה באחזור המידע.");
-                } finally {
-                    hideLoading();
-                }
+                    if (docSnap.exists()) {
+                        showDetails(type, {id: docSnap.id, ...docSnap.data()});
+                    } else { alert("לא נמצא פרופיל או מנהל תואם."); }
+                } catch (err) { console.error("Error fetching doc by QR code:", err); alert("שגיאה באחזור המידע.");
+                } finally { hideLoading(); }
             }, (error) => {});
         });
         document.getElementById('cancel-scanner-modal').addEventListener('click', () => { 
-            if (html5QrcodeScanner && html5QrcodeScanner.getState() === 2) { // 2 is SCANNING state
-                html5QrcodeScanner.stop().catch(err => console.error("Error stopping scanner:", err));
-            }
+            if (html5QrcodeScanner && html5QrcodeScanner.getState() === 2) { html5QrcodeScanner.stop().catch(err => console.error("Error stopping scanner:", err)); }
             closeModal(document.getElementById('scanner-modal')); 
         });
 
-        // Attach listeners to Firestore collections
+        // Attach Firestore listeners
         onSnapshot(collection(db, "sites"), (snapshot) => renderSites(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
         onSnapshot(collection(db, "managers"), (snapshot) => renderManagers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
         onSnapshot(collection(db, "profiles"), (snapshot) => renderProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));

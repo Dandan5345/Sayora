@@ -1,0 +1,16 @@
+{
+  "id": "/apps/sayora-admin",
+  "name": "Sayora ניהול – אדמין",
+  "short_name": "Sayora Admin",
+  "lang": "he-IL",
+  "dir": "rtl",
+  "start_url": "./admin54560sayora.html?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#121212",
+  "background_color": "#121212",
+  "icons": [
+    { "src": "https://i.imgur.com/8UyzP7D.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "https://i.imgur.com/wAJR9LV.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

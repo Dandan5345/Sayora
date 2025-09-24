@@ -1,0 +1,24 @@
+{
+  "name": "Sayora ניהול",
+  "short_name": "Sayora",
+  "lang": "he-IL",
+  "dir": "rtl",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#121212",
+  "background_color": "#121212",
+  "icons": [
+    {
+      "src": "https://i.imgur.com/8UyzP7D.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.imgur.com/wAJR9LV.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

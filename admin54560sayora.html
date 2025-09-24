@@ -65,7 +65,7 @@
 </head>
 <body class="antialiased">
 
-    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex-col gap-4 justify-center items-center z-50">
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex-col gap-4 justify-center items-center z-[70]">
         <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2" style="border-color: var(--primary-gold);"></div>
         <p id="loading-text" class="text-lg">טוען...</p>
     </div>
@@ -186,12 +186,11 @@
     <div id="badge-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-[60] hidden p-4">
         <div class="modal-content p-6 rounded-lg shadow-2xl w-full max-w-md text-center">
             <h3 class="text-2xl font-bold mb-4" style="color: var(--primary-gold);">תצוגה מקדימה של תג</h3>
-            <!-- The Badge itself -->
             <div id="badge-design-area-wrapper" class="p-4 bg-gray-900 rounded-md">
                 <div id="badge-design-area" class="bg-black text-white rounded-2xl aspect-[5.4/8.6] w-full max-w-xs mx-auto shadow-2xl overflow-hidden flex flex-col font-sans border-2 border-gray-700 relative">
                     <div class="absolute top-0 left-0 w-full h-2/5 opacity-50" style="background-image: linear-gradient(to bottom, var(--primary-gold), transparent);"></div>
                     <div class="flex-shrink-0 p-4 text-center z-10">
-                        <img src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Logo" class="w-16 h-16 mx-auto rounded-full" style="filter: drop-shadow(0 0 8px var(--primary-gold));">
+                        <img id="badge-logo" src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Logo" class="w-16 h-16 mx-auto rounded-full" style="filter: drop-shadow(0 0 8px var(--primary-gold));">
                     </div>
                     <div class="flex-grow flex flex-col items-center justify-center text-center px-4 z-10 -mt-8">
                         <div class="w-32 h-32 rounded-full overflow-hidden border-4" style="border-color: var(--primary-gold);">
@@ -203,11 +202,11 @@
                     <div class="flex-shrink-0 p-3 bg-gray-900/70 z-10 flex items-center justify-between mt-auto">
                         <div>
                             <p class="text-xs text-gray-400">ID NUMBER</p>
-                            <p id="badge-id-number" class="text-sm font-semibold tracking-widest">123456789</p>
+                            <p id="badge-id-number" class="text-sm font-semibold">123456789</p>
                         </div>
                         <div class="text-right">
                            <p class="text-xs text-gray-400">PHONE</p>
-                           <p id="badge-phone" class="text-sm font-semibold tracking-widest">050-0000000</p>
+                           <p id="badge-phone" class="text-sm font-semibold">050-0000000</p>
                         </div>
                     </div>
                 </div>
@@ -526,18 +525,55 @@
         });
 
         // Badge Modal Functions
-        const showBadgeModal = (data) => {
-            document.getElementById('badge-photo').src = data.imageUrl || 'https://placehold.co/128x128/1E1E1E/E0E0E0?text=Photo';
-            document.getElementById('badge-name').textContent = data.name;
-            document.getElementById('badge-role').textContent = data.role || data.responsibility; // role for profile, responsibility for manager
-            document.getElementById('badge-id-number').textContent = data.idNumber;
-            document.getElementById('badge-phone').textContent = data.phone;
-            
-            // Pass the person's name to the download button
-            document.getElementById('download-badge-btn').dataset.name = data.name;
-
-            openModal(badgeModal);
+        const imageToDataUrl = (url, width, height) => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width || img.width;
+                    canvas.height = height || img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const dataURL = canvas.toDataURL('image/png');
+                    resolve(dataURL);
+                };
+                img.onerror = (err) => {
+                    console.error('Image loading error:', url, err);
+                    resolve(`https://placehold.co/${width || 128}x${height || 128}/1E1E1E/E0E0E0?text=Error`);
+                };
+                img.src = url;
+            });
         };
+
+        const showBadgeModal = async (data) => {
+            showLoading('מכין תצוגה...');
+            try {
+                const logoUrl = 'https://i.imgur.com/fYUvEiv.png';
+                const photoUrl = data.imageUrl || 'https://placehold.co/128x128/1E1E1E/E0E0E0?text=Photo';
+                
+                const [logoDataUrl, photoDataUrl] = await Promise.all([
+                    imageToDataUrl(logoUrl, 64, 64),
+                    imageToDataUrl(photoUrl, 128, 128)
+                ]);
+
+                document.getElementById('badge-logo').src = logoDataUrl;
+                document.getElementById('badge-photo').src = photoDataUrl;
+                document.getElementById('badge-name').textContent = data.name;
+                document.getElementById('badge-role').textContent = data.role || data.responsibility;
+                document.getElementById('badge-id-number').textContent = data.idNumber;
+                document.getElementById('badge-phone').textContent = data.phone;
+                
+                document.getElementById('download-badge-btn').dataset.name = data.name;
+                openModal(badgeModal);
+            } catch (error) {
+                console.error("Error preparing badge:", error);
+                alert("שגיאה בהכנת התג.");
+            } finally {
+                hideLoading();
+            }
+        };
+
         document.getElementById('close-badge-modal').addEventListener('click', () => closeModal(badgeModal));
         document.getElementById('print-badge-btn').addEventListener('click', () => window.print());
         document.getElementById('download-badge-btn').addEventListener('click', async (e) => {
@@ -546,7 +582,11 @@
             showLoading('יוצר תמונה...');
             try {
                 const { default: html2canvas } = await import('https://cdn.skypack.dev/html2canvas');
-                const canvas = await html2canvas(area, { backgroundColor: '#000000', scale: 4 }); // Higher scale for better quality
+                const canvas = await html2canvas(area, { 
+                    backgroundColor: '#000000', 
+                    scale: 4,
+                    useCORS: true 
+                });
                 const link = document.createElement('a');
                 link.download = `Sayora_Badge_${name.replace(/\s/g, '_')}.png`;
                 link.href = canvas.toDataURL('image/png');

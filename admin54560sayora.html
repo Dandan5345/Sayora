@@ -45,20 +45,29 @@
         .card-btn:hover { background-color: rgba(255,255,255,0.1); }
         
         /* Print styles for the badge */
+        @page {
+            size: auto;
+            margin: 0;
+        }
         @media print {
+            html, body {
+                width: 210mm;
+                height: 297mm;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden;
+            }
             body * { visibility: hidden; }
             #badge-design-area-wrapper, #badge-design-area-wrapper * { visibility: visible; }
             #badge-design-area-wrapper {
                 position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0;
-                padding: 0;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
+            #badge-design-area {
+                width: 5.4cm;
+                height: 8.6cm;
             }
         }
     </style>
@@ -190,9 +199,9 @@
                 <div id="badge-design-area" class="bg-black text-white rounded-2xl aspect-[5.4/8.6] w-full max-w-xs mx-auto shadow-2xl overflow-hidden flex flex-col font-sans border-2 border-gray-700 relative">
                     <div class="absolute top-0 left-0 w-full h-2/5 opacity-50" style="background-image: linear-gradient(to bottom, var(--primary-gold), transparent);"></div>
                     <div class="flex-shrink-0 p-4 text-center z-10">
-                        <img id="badge-logo" src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Logo" class="w-16 h-16 mx-auto rounded-full" style="filter: drop-shadow(0 0 8px var(--primary-gold));">
+                        <img id="badge-logo" src="https://i.imgur.com/fYUvEiv.png" alt="Sayora Logo" class="w-20 h-20 mx-auto rounded-full" style="filter: drop-shadow(0 0 8px var(--primary-gold));">
                     </div>
-                    <div class="flex-grow flex flex-col items-center justify-center text-center px-4 z-10 -mt-8">
+                    <div class="flex-grow flex flex-col items-center justify-center text-center px-4 z-10 -mt-10">
                         <div class="w-32 h-32 rounded-full overflow-hidden border-4" style="border-color: var(--primary-gold);">
                             <img id="badge-photo" src="https://placehold.co/128x128/1E1E1E/E0E0E0?text=Photo" alt="Profile Photo" class="w-full h-full object-cover">
                         </div>
@@ -525,24 +534,30 @@
         });
 
         // Badge Modal Functions
-        const imageToDataUrl = (url, width, height) => {
+        const imageToDataUrl = (url) => {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.crossOrigin = 'Anonymous';
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    canvas.width = width || img.width;
-                    canvas.height = height || img.height;
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
                     const dataURL = canvas.toDataURL('image/png');
                     resolve(dataURL);
                 };
                 img.onerror = (err) => {
                     console.error('Image loading error:', url, err);
-                    resolve(`https://placehold.co/${width || 128}x${height || 128}/1E1E1E/E0E0E0?text=Error`);
+                    // Return a placeholder if the image fails to load
+                    resolve(`https://placehold.co/${img.width || 128}x${img.height || 128}/1E1E1E/E0E0E0?text=Error`);
                 };
-                img.src = url;
+                 // Use a proxy to bypass CORS issues if necessary, but direct fetch is better
+                fetch(url, { cache: 'no-cache' })
+                    .then(response => response.blob())
+                    .then(blob => {
+                        img.src = URL.createObjectURL(blob);
+                    }).catch(reject);
             });
         };
 
@@ -550,11 +565,12 @@
             showLoading('מכין תצוגה...');
             try {
                 const logoUrl = 'https://i.imgur.com/fYUvEiv.png';
-                const photoUrl = data.imageUrl || 'https://placehold.co/128x128/1E1E1E/E0E0E0?text=Photo';
+                const photoUrl = data.imageUrl || `https://placehold.co/128x128/1E1E1E/E0E0E0?text=${data.name.split(' ')[0]}`;
                 
+                // Fetch and convert images to Base64 to prevent CORS issues on canvas export
                 const [logoDataUrl, photoDataUrl] = await Promise.all([
-                    imageToDataUrl(logoUrl, 64, 64),
-                    imageToDataUrl(photoUrl, 128, 128)
+                    imageToDataUrl(logoUrl),
+                    imageToDataUrl(photoUrl)
                 ]);
 
                 document.getElementById('badge-logo').src = logoDataUrl;
@@ -579,13 +595,14 @@
         document.getElementById('download-badge-btn').addEventListener('click', async (e) => {
             const area = document.getElementById('badge-design-area');
             const name = e.currentTarget.dataset.name || 'badge';
-            showLoading('יוצר תמונה...');
+            showLoading('יוצר תמונה באיכות גבוהה...');
             try {
                 const { default: html2canvas } = await import('https://cdn.skypack.dev/html2canvas');
                 const canvas = await html2canvas(area, { 
                     backgroundColor: '#000000', 
-                    scale: 4,
-                    useCORS: true 
+                    scale: 6, // Increased scale for maximum quality
+                    useCORS: true,
+                    allowTaint: true 
                 });
                 const link = document.createElement('a');
                 link.download = `Sayora_Badge_${name.replace(/\s/g, '_')}.png`;

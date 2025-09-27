@@ -53,7 +53,7 @@
             box-shadow: 0 0 15px var(--primary-gold-glow), 0 0 25px var(--primary-gold-glow);
             animation: pulse 2.5s infinite;
         }
-        .modal-backdrop { background-color: rgba(0,0,0,0.8); }
+        .modal-backdrop { background-color: rgba(0,0,0,0.8); backdrop-filter: blur(4px); }
         .modal-content {
             background-color: var(--bg-surface);
             border: 1px solid var(--border-color);
@@ -121,12 +121,13 @@
         </div>
     </div>
     
-    <div id="details-modal" class="fixed inset-0 bg-black bg-opacity-80 items-center justify-center z-50 hidden p-4">
+    <div id="details-modal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden p-4">
         <div id="profile-card-content" class="modal-content p-8 rounded-xl w-full max-w-md text-center">
-            </div>
+            <!-- Profile details will be injected here -->
+        </div>
     </div>
     
-    <div id="feedback-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex-col gap-4 justify-center items-center z-50 hidden">
+    <div id="feedback-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex-col gap-4 justify-center items-center z-[60] hidden">
         <div id="feedback-spinner" class="animate-spin rounded-full h-24 w-24 border-t-2 border-b-2" style="border-color: var(--primary-gold);"></div>
         <p id="feedback-text" class="text-lg mt-4"></p>
     </div>
@@ -141,14 +142,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Login elements
         const loginModal = document.getElementById('login-modal');
         const loginForm = document.getElementById('login-form');
         const stewardIdInput = document.getElementById('steward-id-input');
         const loginError = document.getElementById('login-error');
         const mainContainer = document.getElementById('main-container');
-
-        // Main app elements
         const scanBtn = document.getElementById('scan-qr-btn');
         const scannerModal = document.getElementById('scanner-modal');
         const cancelScannerBtn = document.getElementById('cancel-scanner-modal');
@@ -168,30 +166,20 @@
             feedbackOverlay.style.display = 'none';
         };
         
-        // --- Login Logic ---
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const stewardId = stewardIdInput.value.trim();
             loginError.textContent = '';
-            if (!stewardId) {
-                loginError.textContent = 'יש להזין תעודת זהות.';
-                return;
-            }
+            if (!stewardId) { loginError.textContent = 'יש להזין תעודת זהות.'; return; }
 
             showFeedback('מאמת הרשאות...');
-
             try {
-                const profilesRef = collection(db, "profiles");
-                const q = query(profilesRef, where("isSteward", "==", true), where("idNumber", "==", stewardId));
-                
+                const q = query(collection(db, "profiles"), where("isSteward", "==", true), where("idNumber", "==", stewardId));
                 const querySnapshot = await getDocs(q);
-
                 if (!querySnapshot.empty) {
-                    // Successful login
                     loginModal.style.display = 'none';
                     mainContainer.classList.remove('hidden');
                 } else {
-                    // Failed login
                     loginError.textContent = 'ת.ז. שגויה או שאין הרשאות סדרן.';
                 }
             } catch (error) {
@@ -202,17 +190,10 @@
             }
         });
 
-
-        // --- Scanner Logic ---
         scanBtn.addEventListener('click', () => {
             scannerModal.style.display = 'flex';
             html5QrcodeScanner = new Html5Qrcode("reader");
-            html5QrcodeScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                onScanSuccess,
-                (error) => { /* Ignore scan failure */ }
-            ).catch(err => console.error("Scanner failed to start.", err));
+            html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, (error) => {}).catch(err => console.error("Scanner failed to start.", err));
         });
 
         const stopScanner = () => {
@@ -224,7 +205,7 @@
 
         cancelScannerBtn.addEventListener('click', stopScanner);
 
-        const onScanSuccess = async (decodedText, decodedResult) => {
+        const onScanSuccess = async (decodedText) => {
             stopScanner();
             showFeedback('מאמת נתונים...');
             
@@ -252,30 +233,40 @@
         };
 
         const displayProfileDetails = (data, type) => {
-            const statusBadge = data.isActive 
-                ? `<span class="px-3 py-1 text-sm font-semibold text-green-200 bg-green-800 rounded-full">פעיל</span>` 
-                : `<span class="px-3 py-1 text-sm font-semibold text-red-200 bg-red-800 rounded-full">לא פעיל</span>`;
-
             const sitesHtml = data.sites.map(site => `<span class="bg-gray-700 text-xs font-medium mr-2 mb-2 px-2.5 py-1 rounded">${site.name}</span>`).join('');
 
-            let specificInfo = '';
+            let specificInfoHtml = '';
+            let statusBadgeHtml = '';
             if (type === 'profile') {
-                specificInfo = `
+                specificInfoHtml = `
                     <p class="text-lg" style="color: var(--primary-gold);">${data.role}</p>
                     <p class="text-sm text-gray-400 mt-1">מנהל אחראי: ${data.manager.name}</p>
                 `;
+                statusBadgeHtml = data.isActive 
+                    ? `<span class="px-3 py-1 text-sm font-semibold text-green-200 bg-green-800 rounded-full">פעיל</span>` 
+                    : `<span class="px-3 py-1 text-sm font-semibold text-red-200 bg-red-800 rounded-full">לא פעיל</span>`;
             } else { // manager
-                specificInfo = `<p class="text-lg" style="color: var(--primary-gold);">מנהל</p>`;
+                specificInfoHtml = `<p class="text-lg" style="color: var(--primary-gold);">מנהל</p>`;
+            }
+            
+            // **UPDATED**: Build personal details, including employee number if it exists
+            let personalDetailsHtml = `
+                <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-3" style="color: var(--primary-gold);" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd" /></svg><strong>ת.ז.:</strong> <span class="mr-2">${data.idNumber}</span></p>
+                <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-3" style="color: var(--primary-gold);" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg><strong>טלפון:</strong> <span class="mr-2">${data.phone}</span></p>
+            `;
+            if (data.employeeNumber) {
+                personalDetailsHtml += `
+                <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-3" style="color: var(--primary-gold);" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" /></svg><strong>מספר עובד:</strong> <span class="mr-2">${data.employeeNumber}</span></p>
+                `;
             }
 
             profileCardContent.innerHTML = `
                 <img src="${data.imageUrl}" alt="Profile Picture" class="w-32 h-32 rounded-full mx-auto object-cover profile-card-image mb-4">
                 <h2 class="text-3xl font-bold">${data.name}</h2>
-                ${specificInfo}
-                <div class="my-4">${type === 'profile' ? statusBadge : ''}</div>
+                ${specificInfoHtml}
+                <div class="my-4">${statusBadgeHtml}</div>
                 <div class="text-left space-y-3 my-6 border-t border-b py-4" style="border-color: var(--border-color)">
-                    <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-3" style="color: var(--primary-gold);" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 002 0V3a1 1 0 00-1-1zM4 4a1 1 0 011-1h1.586l.707-.707a1 1 0 011.414 0L10 3.586l1.293-1.293a1 1 0 011.414 0L13.414 3H15a1 1 0 110 2h-1v1.5a1 1 0 11-2 0V5h-1a1 1 0 110-2h.172l.707-.707-1.414-1.414-1-1-1.414 1.414-.707.707H5a1 1 0 01-1-1zm12 5a1 1 0 01-1 1h-1v1.5a1 1 0 11-2 0V10h-1a1 1 0 110-2h.172l.707-.707-1.414-1.414-1-1-1.414 1.414-.707.707H9a1 1 0 110-2h1.586l.707-.707a1 1 0 011.414 0L14 7.586l1.293-1.293a1 1 0 011.414 0L17.414 7H19a1 1 0 110 2h-1.586l-.707.707a1 1 0 01-1.414 0L14 8.414 12.707 9.707a1 1 0 01-1.414 0L10.586 9H10a1 1 0 010-2h.586l.707.707 1.414-1.414 1-1 1.414 1.414.707.707H16a1 1 0 011 1z" clip-rule="evenodd" /></svg><strong>ת.ז.:</strong> <span class="mr-2">${data.idNumber}</span></p>
-                    <p class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-3" style="color: var(--primary-gold);" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg><strong>טלפון:</strong> <span class="mr-2">${data.phone}</span></p>
+                   ${personalDetailsHtml}
                 </div>
                 <div>
                     <h4 class="text-lg font-bold text-left mb-2">אזורי גישה מורשים:</h4>
@@ -296,7 +287,7 @@
         let particlesArray;
 
         class Particle {
-            constructor(x, y, directionX, directionY, size, color) { this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; this.color = color; }
+            constructor(x, y, dirX, dirY, size, color) { this.x = x; this.y = y; this.directionX = dirX; this.directionY = dirY; this.size = size; this.color = color; }
             draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); }
             update() { if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX; if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY; this.x += this.directionX; this.y += this.directionY; this.draw(); }
         }
@@ -307,14 +298,12 @@
                 let size = (Math.random() * 2) + 0.5;
                 let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
                 let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
-                let directionX = (Math.random() * .4) - .2;
-                let directionY = (Math.random() * .4) - .2;
-                particlesArray.push(new Particle(x, y, directionX, directionY, 'rgba(192, 154, 62, 0.4)'));
+                let dirX = (Math.random() * .4) - .2; let dirY = (Math.random() * .4) - .2;
+                particlesArray.push(new Particle(x, y, dirX, dirY, size, 'rgba(192, 154, 62, 0.4)'));
             }
         }
         function animateParticles() { requestAnimationFrame(animateParticles); ctx.clearRect(0,0,innerWidth, innerHeight); for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update(); }
         
-        // Initialize particles on load
         initParticles();
         animateParticles();
         window.addEventListener('resize', () => { canvas.width = innerWidth; canvas.height = innerHeight; initParticles(); });
